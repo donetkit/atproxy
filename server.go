@@ -4,8 +4,6 @@ import (
 	"context"
 	"net"
 	"time"
-
-	"golang.org/x/net/proxy"
 )
 
 type Server struct {
@@ -67,16 +65,18 @@ func NewServer(
 		if upstream.Network == "" {
 			upstream.Network = "tcp"
 		}
-		auth := &proxy.Auth{
-			User:     upstream.User,
-			Password: upstream.Password,
-		}
-		proxyDialer, err := proxy.SOCKS5(upstream.Network, upstream.Addr, auth, server.dialer)
-		if err != nil {
-			return nil, err
-		}
 		server.dialContexts = append(server.dialContexts, func(ctx context.Context, network, addr string) (net.Conn, error) {
-			return proxyDialer.(proxy.ContextDialer).DialContext(ctx, network, addr)
+			conn, err := server.dialer.DialContext(ctx, network, upstream.Addr)
+			if err != nil {
+				return nil, err
+			}
+			// handshake
+			//TODO auth
+			if err := socks5ClientHandshake(conn, addr); err != nil {
+				conn.Close()
+				return nil, err
+			}
+			return conn, err
 		})
 	}
 

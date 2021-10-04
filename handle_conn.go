@@ -14,7 +14,7 @@ func (s *Server) handleConn(
 ) {
 	defer conn.Close()
 
-	hostPort, err := s.socksHandshake(conn)
+	hostPort, err := socks5ServerHandshake(conn)
 	if err != nil {
 		return
 	}
