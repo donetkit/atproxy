@@ -1,6 +1,11 @@
 # atproxy
 socks5 proxy server with auto upstream selection
 
+## installation
+```
+go install github.com/reusee/atproxy/atproxy@master
+```
+
 ## select process
 1. for each client connection, open connections to all upstream servers
 2. also open a direct connection to the target address
