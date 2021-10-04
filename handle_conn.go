@@ -6,6 +6,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/reusee/atproxy/internal"
 )
 
 func (s *Server) handleConn(
@@ -14,7 +16,7 @@ func (s *Server) handleConn(
 ) {
 	defer conn.Close()
 
-	hostPort, err := socks5ServerHandshake(conn)
+	hostPort, err := internal.Socks5ServerHandshake(conn)
 	if err != nil {
 		return
 	}

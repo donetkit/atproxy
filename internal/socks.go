@@ -1,4 +1,4 @@
-package atproxy
+package internal
 
 import (
 	"bytes"
@@ -41,7 +41,7 @@ const (
 
 var ErrBadHandshake = errors.New("bad handshake")
 
-func socks5ServerHandshake(conn net.Conn) (hostPort string, err error) {
+func Socks5ServerHandshake(conn net.Conn) (hostPort string, err error) {
 	defer he(&err)
 
 	ce(conn.SetReadDeadline(time.Now().Add(time.Second * 8)))
@@ -138,7 +138,7 @@ func socks5ServerHandshake(conn net.Conn) (hostPort string, err error) {
 	return
 }
 
-func socks5ClientHandshake(conn net.Conn, addr string) (err error) {
+func Socks5ClientHandshake(conn net.Conn, addr string) (err error) {
 	defer he(&err)
 	host, port, err := net.SplitHostPort(addr)
 	ce(err)

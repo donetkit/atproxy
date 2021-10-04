@@ -4,6 +4,8 @@ import (
 	"context"
 	"net"
 	"time"
+
+	"github.com/reusee/atproxy/internal"
 )
 
 type Server struct {
@@ -72,7 +74,7 @@ func NewServer(
 			}
 			// handshake
 			//TODO auth
-			if err := socks5ClientHandshake(conn, addr); err != nil {
+			if err := internal.Socks5ClientHandshake(conn, addr); err != nil {
 				conn.Close()
 				return nil, err
 			}
