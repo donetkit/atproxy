@@ -109,5 +109,4 @@ func (s *Server) Serve(
 
 	}
 
-	return
 }
