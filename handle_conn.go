@@ -64,9 +64,7 @@ func (s *Server) handleConn(
 	// read local conn
 	wg.Add(1)
 	go func() {
-		defer func() {
-			wg.Done()
-		}()
+		defer wg.Done()
 		for {
 			buffer := make([]byte, 8*1024)
 			deadline := time.Now().Add(s.idleTimeout)

@@ -12,7 +12,7 @@ import (
 func main() {
 
 	if len(os.Args) <= 1 {
-		pt("usage: %s [listen addr] [upstream addr]...",
+		pt("usage: %s [listen addr] [upstream addr]...\n",
 			filepath.Base(os.Args[0]),
 		)
 		return
