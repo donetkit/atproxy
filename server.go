@@ -17,7 +17,7 @@ type Server struct {
 	clientSem   chan struct{}
 	idleTimeout time.Duration
 
-	dialContexts []DialContext
+	dialers []Dialer
 }
 
 type DialContext = func(ctx context.Context, addr, network string) (net.Conn, error)
@@ -59,7 +59,10 @@ func NewServer(
 	}
 
 	// direct
-	server.dialContexts = append(server.dialContexts, server.dialer.DialContext)
+	server.dialers = append(server.dialers, Dialer{
+		DialContext: server.dialer.DialContext,
+		Name:        "direct",
+	})
 
 	// upstream
 	for _, upstream := range server.upstreams {
@@ -67,18 +70,21 @@ func NewServer(
 		if upstream.Network == "" {
 			upstream.Network = "tcp"
 		}
-		server.dialContexts = append(server.dialContexts, func(ctx context.Context, network, addr string) (net.Conn, error) {
-			conn, err := server.dialer.DialContext(ctx, network, upstream.Addr)
-			if err != nil {
-				return nil, err
-			}
-			// handshake
-			//TODO auth
-			if err := internal.Socks5ClientHandshake(conn, addr); err != nil {
-				conn.Close()
-				return nil, err
-			}
-			return conn, err
+		server.dialers = append(server.dialers, Dialer{
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				conn, err := server.dialer.DialContext(ctx, network, upstream.Addr)
+				if err != nil {
+					return nil, err
+				}
+				// handshake
+				//TODO auth
+				if err := internal.Socks5ClientHandshake(conn, addr); err != nil {
+					conn.Close()
+					return nil, err
+				}
+				return conn, err
+			},
+			Name: upstream.Addr,
 		})
 	}
 

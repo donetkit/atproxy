@@ -2,6 +2,7 @@ package atproxy
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/reusee/e4"
 )
@@ -12,4 +13,5 @@ var (
 	we = e4.Wrap
 
 	is = errors.Is
+	pt = fmt.Printf
 )

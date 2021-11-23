@@ -21,17 +21,17 @@ func (s *Server) handleConn(
 		return
 	}
 
-	numUpstream := len(s.dialContexts)
+	numDialers := len(s.dialers)
 
 	// chans and contexts
 	type Ctx struct {
 		Context context.Context
 		Cancel  func()
 	}
-	ctxs := make([]*Ctx, 0, numUpstream)
-	outbounds := make([]chan []byte, 0, numUpstream)
-	outboundsClosed := make([]bool, 0, numUpstream)
-	for i := 0; i < numUpstream; i++ {
+	ctxs := make([]*Ctx, 0, numDialers)
+	outbounds := make([]chan []byte, 0, numDialers)
+	outboundsClosed := make([]bool, 0, numDialers)
+	for i := 0; i < numDialers; i++ {
 		outbounds = append(outbounds, make(chan []byte, 512))
 		outboundsClosed = append(outboundsClosed, false)
 		ctx, cancel := context.WithCancel(parentCtx)
@@ -108,29 +108,29 @@ func (s *Server) handleConn(
 		}
 	}()
 
-	closeReadCounter := int64(numUpstream)
+	closeReadCounter := int64(numDialers)
 	closeRead := func(n int64) {
 		if n := atomic.AddInt64(&closeReadCounter, n); n <= 0 {
 			closeConnRead()
 		}
 	}
-	closeWriteCounter := int64(numUpstream)
+	closeWriteCounter := int64(numDialers)
 	closeWrite := func(n int64) {
 		if n := atomic.AddInt64(&closeWriteCounter, n); n <= 0 {
 			closeConnWrite()
 		}
 	}
 
-	for i, dial := range s.dialContexts {
+	for i, dialer := range s.dialers {
 		i := i
-		dial := dial
+		dialer := dialer
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
 			// dial
 			var upstream *net.TCPConn
-			c, err := dial(ctxs[i].Context, "tcp", hostPort)
+			c, err := dialer.DialContext(ctxs[i].Context, "tcp", hostPort)
 			if err == nil {
 				upstream = c.(*net.TCPConn)
 			}
@@ -188,7 +188,7 @@ func (s *Server) handleConn(
 				}
 				if n := int(atomic.LoadInt32(&chosen)); n == i {
 					// chosen
-					closeRead(-int64(numUpstream))
+					closeRead(-int64(numDialers))
 				} else {
 					closeRead(-1)
 				}
@@ -207,7 +207,7 @@ func (s *Server) handleConn(
 				defer func() {
 					if n := int(atomic.LoadInt32(&chosen)); n == i {
 						// chosen
-						closeWrite(-int64(numUpstream))
+						closeWrite(-int64(numDialers))
 					} else {
 						closeWrite(-1)
 					}
@@ -233,6 +233,7 @@ func (s *Server) handleConn(
 						if !selected {
 							if atomic.CompareAndSwapInt32(&chosen, -1, int32(i)) {
 								selected = true
+								pt("%s -> %s\n", dialer.Name, hostPort)
 							} else {
 								break // not selected
 							}
