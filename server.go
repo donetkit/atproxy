@@ -3,6 +3,8 @@ package atproxy
 import (
 	"context"
 	"net"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/reusee/atproxy/internal"
@@ -18,6 +20,8 @@ type Server struct {
 	idleTimeout time.Duration
 
 	dialers []Dialer
+
+	denyDirectPatterns []string
 }
 
 type DialContext = func(ctx context.Context, addr, network string) (net.Conn, error)
@@ -58,10 +62,18 @@ func NewServer(
 		}
 	}
 
-	// direct
+	// direct dialer
+	buf := new(strings.Builder)
+	for i, pattern := range server.denyDirectPatterns {
+		if i > 0 {
+			buf.WriteString("|")
+		}
+		buf.WriteString(pattern)
+	}
 	server.dialers = append(server.dialers, Dialer{
 		DialContext: server.dialer.DialContext,
 		Name:        "direct",
+		Deny:        regexp.MustCompile(buf.String()),
 	})
 
 	// upstream

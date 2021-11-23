@@ -31,6 +31,8 @@ func main() {
 		}))
 	}
 
+	options = append(options, atproxy.WithDenyDirectPattern("github"))
+
 	server, err := atproxy.NewServer(
 		ln.(*net.TCPListener),
 		options...,

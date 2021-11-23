@@ -128,6 +128,12 @@ func (s *Server) handleConn(
 		go func() {
 			defer wg.Done()
 
+			if dialer.Deny != nil {
+				if dialer.Deny.MatchString(hostPort) {
+					return
+				}
+			}
+
 			// dial
 			var upstream *net.TCPConn
 			c, err := dialer.DialContext(ctxs[i].Context, "tcp", hostPort)
@@ -233,7 +239,6 @@ func (s *Server) handleConn(
 						if !selected {
 							if atomic.CompareAndSwapInt32(&chosen, -1, int32(i)) {
 								selected = true
-								pt("%s -> %s\n", dialer.Name, hostPort)
 							} else {
 								break // not selected
 							}

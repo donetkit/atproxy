@@ -36,3 +36,9 @@ func WithMaxClients(n int) ServerOption {
 		s.maxClients = n
 	}
 }
+
+func WithDenyDirectPattern(pattern string) ServerOption {
+	return func(s *Server) {
+		s.denyDirectPatterns = append(s.denyDirectPatterns, pattern)
+	}
+}
