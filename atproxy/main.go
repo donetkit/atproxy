@@ -23,7 +23,7 @@ func main() {
 	var options []atproxy.ServerOption
 
 	options = append(options, atproxy.WithDenyDirectPattern("github"))
-	var socksAddr string
+	var socksAddr, httpAddr string
 
 	// load config file
 	exePath, err := os.Executable()
@@ -42,6 +42,10 @@ func main() {
 					socksAddr = addr
 					pt("socks addr %s\n", addr)
 				}),
+				"http_addr": starlarkutil.MakeFunc("http_addr", func(addr string) {
+					httpAddr = addr
+					pt("http addr %s\n", addr)
+				}),
 				"upstream": starlarkutil.MakeFunc("upstream", func(addr string) {
 					options = append(options, atproxy.WithUpstream(atproxy.Upstream{
 						Addr: addr,
@@ -53,11 +57,14 @@ func main() {
 		ce(err)
 	}
 
-	ln, err := net.Listen("tcp", socksAddr)
+	socksLn, err := net.Listen("tcp", socksAddr)
+	ce(err)
+	httpLn, err := net.Listen("tcp", httpAddr)
 	ce(err)
 
 	server, err := atproxy.NewServer(
-		ln.(*net.TCPListener),
+		socksLn.(*net.TCPListener),
+		httpLn.(*net.TCPListener),
 		options...,
 	)
 	ce(err)

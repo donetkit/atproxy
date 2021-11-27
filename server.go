@@ -3,6 +3,7 @@ package atproxy
 import (
 	"context"
 	"net"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -11,7 +12,8 @@ import (
 )
 
 type Server struct {
-	ln          *net.TCPListener
+	socksLn     *net.TCPListener
+	httpLn      *net.TCPListener
 	upstreams   []Upstream
 	dialTimeout time.Duration
 	dialer      *net.Dialer
@@ -27,7 +29,8 @@ type Server struct {
 type DialContext = func(ctx context.Context, addr, network string) (net.Conn, error)
 
 func NewServer(
-	ln *net.TCPListener,
+	socksLn *net.TCPListener,
+	httpLn *net.TCPListener,
 	options ...ServerOption,
 ) (
 	server *Server,
@@ -36,7 +39,8 @@ func NewServer(
 	defer he(&err)
 
 	server = &Server{
-		ln: ln,
+		socksLn: socksLn,
+		httpLn:  httpLn,
 	}
 	for _, option := range options {
 		option(server)
@@ -110,8 +114,42 @@ func (s *Server) Serve(
 ) {
 	defer he(&err)
 
+	// http
+	go func() {
+		server := &http.Server{
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				if s.clientSem != nil {
+					s.clientSem <- struct{}{}
+					defer func() {
+						<-s.clientSem
+					}()
+				}
+				hostPort := req.Host
+				hijacker, ok := w.(http.Hijacker)
+				if !ok {
+					http.Error(w, "not supported", http.StatusInternalServerError)
+					return
+				}
+				c, _, err := hijacker.Hijack()
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusServiceUnavailable)
+					return
+				}
+				conn := c.(*net.TCPConn)
+				defer conn.Close()
+
+				_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+				ce(err)
+
+				s.handleConn(ctx, conn, hostPort)
+			}),
+		}
+		server.Serve(s.httpLn)
+	}()
+
+	// socks
 	for {
-		conn, err := s.ln.AcceptTCP()
+		conn, err := s.socksLn.AcceptTCP()
 		ce(err)
 
 		if s.maxClients > 0 {
@@ -123,8 +161,14 @@ func (s *Server) Serve(
 					<-s.clientSem
 				}()
 			}
+			defer conn.Close()
 
-			s.handleConn(ctx, conn)
+			hostPort, err := internal.Socks5ServerHandshake(conn)
+			if err != nil {
+				return
+			}
+
+			s.handleConn(ctx, conn, hostPort)
 		}()
 
 	}

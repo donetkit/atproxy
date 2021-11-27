@@ -6,20 +6,13 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/reusee/atproxy/internal"
 )
 
 func (s *Server) handleConn(
 	parentCtx context.Context,
 	conn *net.TCPConn,
+	hostPort string,
 ) {
-	defer conn.Close()
-
-	hostPort, err := internal.Socks5ServerHandshake(conn)
-	if err != nil {
-		return
-	}
 
 	numDialers := len(s.dialers)
 
