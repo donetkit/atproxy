@@ -11,17 +11,10 @@ import (
 )
 
 type Server struct {
-	ln          *net.TCPListener
-	upstreams   []Upstream
-	dialTimeout time.Duration
-	dialer      *net.Dialer
-	maxClients  int
-	clientSem   chan struct{}
-	idleTimeout time.Duration
-
-	dialers []Dialer
-
-	denyDirectPatterns []string
+	spec      ServerSpec
+	ln        *net.TCPListener
+	clientSem chan struct{}
+	dialers   []Dialer
 }
 
 type DialContext = func(ctx context.Context, addr, network string) (net.Conn, error)
@@ -38,53 +31,54 @@ func NewServer(
 	server = &Server{
 		ln: ln,
 	}
+	var spec ServerSpec
 	for _, option := range options {
-		option(server)
+		option(&spec)
 	}
 
 	// idle timeout
-	if server.idleTimeout == 0 {
-		server.idleTimeout = time.Minute * 47
+	if spec.idleTimeout == 0 {
+		spec.idleTimeout = time.Minute * 47
 	}
 
 	// max clients
-	if server.maxClients > 0 {
-		server.clientSem = make(chan struct{}, server.maxClients)
+	if spec.maxClients > 0 {
+		server.clientSem = make(chan struct{}, spec.maxClients)
 	}
 
 	// dial
-	if server.dialTimeout == 0 {
-		server.dialTimeout = time.Second * 16
+	if spec.dialTimeout == 0 {
+		spec.dialTimeout = time.Second * 16
 	}
-	if server.dialer == nil {
-		server.dialer = &net.Dialer{
-			Timeout: server.dialTimeout,
+	if spec.dialer == nil {
+		spec.dialer = &net.Dialer{
+			Timeout: spec.dialTimeout,
 		}
 	}
 
 	// direct dialer
 	buf := new(strings.Builder)
-	for i, pattern := range server.denyDirectPatterns {
+	for i, pattern := range spec.denyDirectPatterns {
 		if i > 0 {
 			buf.WriteString("|")
 		}
 		buf.WriteString(pattern)
 	}
 	server.dialers = append(server.dialers, Dialer{
-		DialContext: server.dialer.DialContext,
+		DialContext: spec.dialer.DialContext,
 		Name:        "direct",
 		Deny:        regexp.MustCompile(buf.String()),
 	})
 
 	// upstream
-	for _, upstream := range server.upstreams {
+	for _, upstream := range spec.upstreams {
 		upstream := upstream
 		if upstream.Network == "" {
 			upstream.Network = "tcp"
 		}
 		server.dialers = append(server.dialers, Dialer{
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				conn, err := server.dialer.DialContext(ctx, network, upstream.Addr)
+				conn, err := spec.dialer.DialContext(ctx, network, upstream.Addr)
 				if err != nil {
 					return nil, err
 				}
@@ -114,11 +108,11 @@ func (s *Server) Serve(
 		conn, err := s.ln.AcceptTCP()
 		ce(err)
 
-		if s.maxClients > 0 {
+		if s.clientSem != nil {
 			s.clientSem <- struct{}{}
 		}
 		go func() {
-			if s.maxClients > 0 {
+			if s.clientSem != nil {
 				defer func() {
 					<-s.clientSem
 				}()
