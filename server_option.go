@@ -5,49 +5,40 @@ import (
 	"time"
 )
 
-type ServerSpec struct {
-	upstreams          []Upstream
-	dialer             *net.Dialer
-	dialTimeout        time.Duration
-	idleTimeout        time.Duration
-	maxClients         int
-	denyDirectPatterns []string
-}
-
-type ServerOption func(*ServerSpec)
+type ServerOption func(*Server)
 
 func WithUpstream(upstream Upstream) ServerOption {
-	return func(s *ServerSpec) {
+	return func(s *Server) {
 		s.upstreams = append(s.upstreams, upstream)
 	}
 }
 
 func WithDialer(dialer *net.Dialer) ServerOption {
-	return func(s *ServerSpec) {
+	return func(s *Server) {
 		s.dialer = dialer
 	}
 }
 
 func WithDialTimeout(d time.Duration) ServerOption {
-	return func(s *ServerSpec) {
+	return func(s *Server) {
 		s.dialTimeout = d
 	}
 }
 
 func WithIdleTimeout(d time.Duration) ServerOption {
-	return func(s *ServerSpec) {
+	return func(s *Server) {
 		s.idleTimeout = d
 	}
 }
 
 func WithMaxClients(n int) ServerOption {
-	return func(s *ServerSpec) {
+	return func(s *Server) {
 		s.maxClients = n
 	}
 }
 
 func WithDenyDirectPattern(pattern string) ServerOption {
-	return func(s *ServerSpec) {
+	return func(s *Server) {
 		s.denyDirectPatterns = append(s.denyDirectPatterns, pattern)
 	}
 }

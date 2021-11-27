@@ -67,7 +67,7 @@ func (s *Server) handleConn(
 		defer wg.Done()
 		for {
 			buffer := make([]byte, 8*1024)
-			deadline := time.Now().Add(s.spec.idleTimeout)
+			deadline := time.Now().Add(s.idleTimeout)
 			if err := conn.SetReadDeadline(deadline); err != nil {
 				break
 			}
@@ -227,7 +227,7 @@ func (s *Server) handleConn(
 				selected := false
 				for {
 
-					deadline := time.Now().Add(s.spec.idleTimeout)
+					deadline := time.Now().Add(s.idleTimeout)
 					if err := upstream.SetReadDeadline(deadline); err != nil {
 						break
 					}
