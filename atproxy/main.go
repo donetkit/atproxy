@@ -20,6 +20,16 @@ func main() {
 		ce(http.ListenAndServe("localhost:8000", nil))
 	}()
 
+	if len(os.Args) > 1 {
+		fn, ok := commands[os.Args[1]]
+		if !ok {
+			pt("no such command\n")
+			os.Exit(-1)
+		}
+		fn()
+		return
+	}
+
 	var options []atproxy.ServerOption
 
 	options = append(options, atproxy.WithDenyDirectPattern("github"))
