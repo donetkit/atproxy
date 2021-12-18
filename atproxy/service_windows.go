@@ -46,6 +46,8 @@ func init() {
 			return
 		}
 		defer s.Close()
+		//_, err = s.Control(svc.Stop)
+		//ce(err)
 		ce(s.Delete())
 		ce(eventlog.Remove(serviceName))
 	}

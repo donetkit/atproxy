@@ -22,10 +22,14 @@ func (s *Server) handleConn(
 		Cancel  func()
 	}
 	ctxs := make([]*Ctx, 0, numDialers)
-	outbounds := make([]chan []byte, 0, numDialers)
+	type OutboundPacket struct {
+		Data []byte
+		Put  func() bool
+	}
+	outbounds := make([]chan OutboundPacket, 0, numDialers)
 	outboundsClosed := make([]bool, 0, numDialers)
 	for i := 0; i < numDialers; i++ {
-		outbounds = append(outbounds, make(chan []byte, 512))
+		outbounds = append(outbounds, make(chan OutboundPacket, 512))
 		outboundsClosed = append(outboundsClosed, false)
 		ctx, cancel := context.WithCancel(parentCtx)
 		ctxs = append(ctxs, &Ctx{
@@ -59,7 +63,8 @@ func (s *Server) handleConn(
 	go func() {
 		defer wg.Done()
 		for {
-			buffer := make([]byte, 8*1024)
+			v, put, incRef := bytesPool.GetRC()
+			buffer := v.([]byte)
 			deadline := time.Now().Add(s.idleTimeout)
 			if err := conn.SetReadDeadline(deadline); err != nil {
 				break
@@ -70,7 +75,10 @@ func (s *Server) handleConn(
 				buffer = buffer[:n]
 				if i := atomic.LoadInt32(&chosen); i != -1 {
 					// send to the chosen one
-					outbounds[i] <- buffer
+					outbounds[i] <- OutboundPacket{
+						Data: buffer,
+						Put:  put,
+					}
 					for n, outbound := range outbounds {
 						if n == int(i) {
 							continue
@@ -84,7 +92,11 @@ func (s *Server) handleConn(
 				} else {
 					// send to all
 					for _, ch := range outbounds {
-						ch <- buffer
+						incRef()
+						ch <- OutboundPacket{
+							Data: buffer,
+							Put:  put,
+						}
 					}
 				}
 			}
@@ -166,22 +178,26 @@ func (s *Server) handleConn(
 				}()
 				if upstream != nil {
 					for {
-						data, ok := <-outbounds[i]
+						outboundPacket, ok := <-outbounds[i]
 						if !ok {
 							break
 						}
 						n := atomic.LoadInt32(&chosen)
 						if n != -1 && n != int32(i) {
+							outboundPacket.Put()
 							break
 						}
 						if err := upstream.SetWriteDeadline(time.Now().Add(time.Minute * 8)); err != nil {
+							outboundPacket.Put()
 							break
 						}
-						_, err := upstream.Write(data)
+						_, err := upstream.Write(outboundPacket.Data)
 						if err != nil {
+							outboundPacket.Put()
 							break
 						}
-						atomic.AddInt64(&upstreamBytesWritten, int64(len(data)))
+						atomic.AddInt64(&upstreamBytesWritten, int64(len(outboundPacket.Data)))
+						outboundPacket.Put()
 					}
 					closeUpstreamWrite()
 				}
@@ -191,7 +207,8 @@ func (s *Server) handleConn(
 				} else {
 					closeRead(-1)
 				}
-				for range outbounds[i] {
+				for outboundPacket := range outbounds[i] {
+					outboundPacket.Put()
 				}
 			}()
 
@@ -216,7 +233,9 @@ func (s *Server) handleConn(
 				}
 				defer closeUpstreamRead()
 
-				buffer := make([]byte, 8*1024)
+				v, put := bytesPool.Get()
+				defer put()
+				buffer := v.([]byte)
 				selected := false
 				for {
 
