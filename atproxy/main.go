@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"net"
 	"os"
 	"path/filepath"
@@ -10,9 +9,12 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/reusee/atproxy"
+	"github.com/reusee/pr"
 	"github.com/reusee/starlarkutil"
 	"go.starlark.net/starlark"
 )
+
+var globalWaitTree = pr.NewRootWaitTree()
 
 func main() {
 
@@ -79,6 +81,6 @@ func main() {
 	)
 	ce(err)
 
-	server.Serve(context.Background())
+	server.Serve(globalWaitTree.Ctx)
 
 }
