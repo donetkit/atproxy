@@ -21,7 +21,8 @@ type Server struct {
 	clientSem   chan struct{}
 	idleTimeout time.Duration
 
-	dialers []Dialer
+	dialers        []Dialer
+	httpTransports []*http.Transport
 
 	denyDirectPatterns []string
 }
@@ -104,6 +105,13 @@ func NewServer(
 		})
 	}
 
+	// http transports
+	for _, dial := range server.dialers {
+		server.httpTransports = append(server.httpTransports, &http.Transport{
+			DialContext: dial.DialContext,
+		})
+	}
+
 	return
 }
 
@@ -124,6 +132,12 @@ func (s *Server) Serve(
 						<-s.clientSem
 					}()
 				}
+
+				if req.Method != http.MethodConnect {
+					s.handleRequest(ctx, req, w)
+					return
+				}
+
 				hostPort := req.Host
 				hijacker, ok := w.(http.Hijacker)
 				if !ok {
