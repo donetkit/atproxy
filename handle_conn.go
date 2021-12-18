@@ -63,18 +63,19 @@ func (s *Server) handleConn(
 	go func() {
 		defer wg.Done()
 		for {
-			v, put, incRef := bytesPool.GetRC()
-			buffer := v.([]byte)
 			deadline := time.Now().Add(s.idleTimeout)
 			if err := conn.SetReadDeadline(deadline); err != nil {
 				break
 			}
+			v, put, incRef := bytesPool.GetRC()
+			buffer := v.([]byte)
 			n, err := conn.Read(buffer)
 			if n > 0 {
 				atomic.AddInt64(&connBytesRead, int64(n))
 				buffer = buffer[:n]
 				if i := atomic.LoadInt32(&chosen); i != -1 {
 					// send to the chosen one
+					incRef()
 					outbounds[i] <- OutboundPacket{
 						Data: buffer,
 						Put:  put,
@@ -100,6 +101,7 @@ func (s *Server) handleConn(
 					}
 				}
 			}
+			put()
 			if err != nil {
 				break
 			}
