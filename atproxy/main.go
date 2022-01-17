@@ -36,7 +36,6 @@ func main() {
 
 	var options []atproxy.ServerOption
 
-	options = append(options, atproxy.WithDenyDirectPattern("github"))
 	var socksAddr, httpAddr string
 
 	// load config file
@@ -91,6 +90,12 @@ func main() {
 					}))
 					pt("upstream %s\n", addr)
 				}),
+
+				"no_direct": starlarkutil.MakeFunc("no_direct", func(pattern string) {
+					options = append(options, atproxy.WithDenyDirectPattern(pattern))
+				}),
+
+				//
 			},
 		)
 		ce(err)

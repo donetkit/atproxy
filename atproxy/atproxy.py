@@ -9,4 +9,5 @@ http_addr(tailscale_addr() + ":10086")
 #upstream("100.111.147.87:10000")
 #upstream("100.73.249.57:10000")
 #upstream("100.68.74.6:10000")
+#no_direct("github")
 
