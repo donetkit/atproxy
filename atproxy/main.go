@@ -4,6 +4,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"net/http"
 	_ "net/http/pprof"
@@ -50,14 +52,33 @@ func main() {
 			configFileName,
 			content,
 			starlark.StringDict{
+
+				"tailscale_addr": starlarkutil.MakeFunc("tailscale_addr", func() string {
+				get:
+					ifaces, err := net.Interfaces()
+					ce(err)
+					for _, iface := range ifaces {
+						if !strings.HasPrefix(iface.Name, "tailscale") {
+							continue
+						}
+						addrs, err := iface.Addrs()
+						ce(err)
+						return addrs[0].(*net.IPNet).IP.String()
+					}
+					time.Sleep(time.Second)
+					goto get
+				}),
+
 				"socks_addr": starlarkutil.MakeFunc("socks_addr", func(addr string) {
 					socksAddr = addr
 					pt("socks addr %s\n", addr)
 				}),
+
 				"http_addr": starlarkutil.MakeFunc("http_addr", func(addr string) {
 					httpAddr = addr
 					pt("http addr %s\n", addr)
 				}),
+
 				"upstream": starlarkutil.MakeFunc("upstream", func(addr string) {
 					options = append(options, atproxy.WithUpstream(atproxy.Upstream{
 						Addr: addr,
