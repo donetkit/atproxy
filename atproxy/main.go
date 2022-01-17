@@ -36,7 +36,6 @@ func main() {
 
 	var options []atproxy.ServerOption
 
-	options = append(options, atproxy.WithDenyDirectPattern("github"))
 	var socksAddr, httpAddr string
 
 	// load config file
