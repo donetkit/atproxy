@@ -68,18 +68,21 @@ func NewServer(
 	}
 
 	// direct dialer
-	buf := new(strings.Builder)
-	for i, pattern := range server.denyDirectPatterns {
-		if i > 0 {
-			buf.WriteString("|")
-		}
-		buf.WriteString(pattern)
-	}
-	server.dialers = append(server.dialers, Dialer{
+	dialer := Dialer{
 		DialContext: server.dialer.DialContext,
 		Name:        "direct",
-		Deny:        regexp.MustCompile(buf.String()),
-	})
+	}
+	if len(server.denyDirectPatterns) > 0 {
+		buf := new(strings.Builder)
+		for i, pattern := range server.denyDirectPatterns {
+			if i > 0 {
+				buf.WriteString("|")
+			}
+			buf.WriteString(pattern)
+		}
+		dialer.Deny = regexp.MustCompile(buf.String())
+	}
+	server.dialers = append(server.dialers, dialer)
 
 	// upstream
 	for _, upstream := range server.upstreams {
