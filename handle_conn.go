@@ -135,17 +135,20 @@ func (s *Server) handleConn(
 		go func() {
 			defer wg.Done()
 
+			noDial := false
 			if dialer.Deny != nil {
 				if dialer.Deny.MatchString(hostPort) {
-					return
+					noDial = true
 				}
 			}
 
 			// dial
 			var upstream *net.TCPConn
-			c, err := dialer.DialContext(ctxs[i].Context, "tcp", hostPort)
-			if err == nil {
-				upstream = c.(*net.TCPConn)
+			if !noDial {
+				c, err := dialer.DialContext(ctxs[i].Context, "tcp", hostPort)
+				if err == nil {
+					upstream = c.(*net.TCPConn)
+				}
 			}
 
 			subWg := new(sync.WaitGroup)
