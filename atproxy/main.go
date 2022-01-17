@@ -63,7 +63,13 @@ func main() {
 						}
 						addrs, err := iface.Addrs()
 						ce(err)
-						return addrs[0].(*net.IPNet).IP.String()
+						for _, addr := range addrs {
+							ip := addr.(*net.IPNet).IP.To4()
+							if len(ip) != 4 {
+								continue
+							}
+							return ip.String()
+						}
 					}
 					time.Sleep(time.Second)
 					goto get
