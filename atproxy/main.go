@@ -36,7 +36,12 @@ func main() {
 
 	var options []atproxy.ServerOption
 
-	var socksAddr, httpAddr string
+	type serverSpec struct {
+		socksAddr string
+		httpAddr  string
+		options   []atproxy.ServerOption
+	}
+	var serverSpecs []serverSpec
 
 	// load config file
 	exePath, err := os.Executable()
@@ -74,21 +79,21 @@ func main() {
 					goto get
 				}),
 
-				"socks_addr": starlarkutil.MakeFunc("socks_addr", func(addr string) {
-					socksAddr = addr
-					pt("socks addr %s\n", addr)
-				}),
-
-				"http_addr": starlarkutil.MakeFunc("http_addr", func(addr string) {
-					httpAddr = addr
-					pt("http addr %s\n", addr)
-				}),
-
-				"upstream": starlarkutil.MakeFunc("upstream", func(addr string) {
-					options = append(options, atproxy.WithUpstream(atproxy.Upstream{
-						Addr: addr,
-					}))
-					pt("upstream %s\n", addr)
+				"server": starlarkutil.MakeFunc("server", func(
+					socksAddr string,
+					httpAddr string,
+					upstreams ...string,
+				) {
+					spec := serverSpec{
+						socksAddr: socksAddr,
+						httpAddr:  httpAddr,
+					}
+					for _, upstream := range upstreams {
+						spec.options = append(spec.options, atproxy.WithUpstream(atproxy.Upstream{
+							Addr: upstream,
+						}))
+					}
+					serverSpecs = append(serverSpecs, spec)
 				}),
 
 				"no_direct": starlarkutil.MakeFunc("no_direct", func(pattern string) {
@@ -101,18 +106,26 @@ func main() {
 		ce(err)
 	}
 
-	socksLn, err := net.Listen("tcp", socksAddr)
-	ce(err)
-	httpLn, err := net.Listen("tcp", httpAddr)
-	ce(err)
+	for _, spec := range serverSpecs {
 
-	server, err := atproxy.NewServer(
-		socksLn.(*net.TCPListener),
-		httpLn.(*net.TCPListener),
-		options...,
-	)
-	ce(err)
+		socksLn, err := net.Listen("tcp", spec.socksAddr)
+		ce(err)
+		httpLn, err := net.Listen("tcp", spec.httpAddr)
+		ce(err)
 
-	server.Serve(globalWaitTree.Ctx)
+		spec.options = append(spec.options, options...)
+
+		server, err := atproxy.NewServer(
+			socksLn.(*net.TCPListener),
+			httpLn.(*net.TCPListener),
+			spec.options...,
+		)
+		ce(err)
+
+		go server.Serve(globalWaitTree.Ctx)
+
+	}
+
+	select {}
 
 }
