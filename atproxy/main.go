@@ -57,7 +57,11 @@ func main() {
 			content,
 			starlark.StringDict{
 
-				"tailscale_addr": starlarkutil.MakeFunc("tailscale_addr", func() string {
+				"tailscale_addr": starlarkutil.MakeFunc("tailscale_addr", func() (ret string) {
+					pt("get tailscale address\n")
+					defer func() {
+						pt("tailscale address is %v\n", ret)
+					}()
 				get:
 					ifaces, err := net.Interfaces()
 					ce(err)
@@ -88,7 +92,9 @@ func main() {
 						socksAddr: socksAddr,
 						httpAddr:  httpAddr,
 					}
+					pt("server, socks %v, http %v\n", spec.socksAddr, spec.httpAddr)
 					for _, upstream := range upstreams {
+						pt("\tupstream %v\n", upstream)
 						spec.options = append(spec.options, atproxy.WithUpstream(atproxy.Upstream{
 							Addr: upstream,
 						}))
@@ -97,6 +103,7 @@ func main() {
 				}),
 
 				"no_direct": starlarkutil.MakeFunc("no_direct", func(pattern string) {
+					pt("rule: no direct %q\n", pattern)
 					options = append(options, atproxy.WithDenyDirectPattern(pattern))
 				}),
 
