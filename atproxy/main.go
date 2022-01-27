@@ -34,14 +34,14 @@ func main() {
 		return
 	}
 
-	var options []atproxy.ServerOption
-
 	type serverSpec struct {
-		socksAddr string
-		httpAddr  string
-		options   []atproxy.ServerOption
+		socksAddr     string
+		httpAddr      string
+		upstreamAddrs []string
 	}
 	var serverSpecs []serverSpec
+
+	var noDirectPatterns atproxy.NoDirectPatterns
 
 	// load config file
 	exePath, err := os.Executable()
@@ -95,16 +95,14 @@ func main() {
 					pt("server, socks %v, http %v\n", spec.socksAddr, spec.httpAddr)
 					for _, upstream := range upstreams {
 						pt("\tupstream %v\n", upstream)
-						spec.options = append(spec.options, atproxy.WithUpstream(atproxy.Upstream{
-							Addr: upstream,
-						}))
+						spec.upstreamAddrs = append(spec.upstreamAddrs, upstream)
 					}
 					serverSpecs = append(serverSpecs, spec)
 				}),
 
 				"no_direct": starlarkutil.MakeFunc("no_direct", func(pattern string) {
 					pt("rule: no direct %q\n", pattern)
-					options = append(options, atproxy.WithDenyDirectPattern(pattern))
+					noDirectPatterns = append(noDirectPatterns, pattern)
 				}),
 
 				//
@@ -114,22 +112,40 @@ func main() {
 	}
 
 	for _, spec := range serverSpecs {
+		spec := spec
+		go func() {
 
-		socksLn, err := net.Listen("tcp", spec.socksAddr)
-		ce(err)
-		httpLn, err := net.Listen("tcp", spec.httpAddr)
-		ce(err)
+			socksLn, err := net.Listen("tcp", spec.socksAddr)
+			ce(err)
+			httpLn, err := net.Listen("tcp", spec.httpAddr)
+			ce(err)
 
-		spec.options = append(spec.options, options...)
+			atproxy.NewServerScope().Fork(
 
-		server, err := atproxy.NewServer(
-			socksLn.(*net.TCPListener),
-			httpLn.(*net.TCPListener),
-			spec.options...,
-		)
-		ce(err)
+				&noDirectPatterns,
 
-		go server.Serve(globalWaitTree.Ctx)
+				func() (upstreams atproxy.Upstreams) {
+					for _, addr := range spec.upstreamAddrs {
+						upstreams = append(upstreams, &atproxy.Upstream{
+							Network: "tcp",
+							Addr:    addr,
+						})
+					}
+					return
+				},
+
+				//
+			).Call(func(
+				serve atproxy.Serve,
+			) {
+				ce(serve(
+					globalWaitTree.Ctx,
+					socksLn.(*net.TCPListener),
+					httpLn.(*net.TCPListener),
+				))
+			})
+
+		}()
 
 	}
 
