@@ -79,7 +79,9 @@ func (_ Def) Serve(
 					defer conn.Close()
 
 					_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-					ce(err)
+					if err != nil {
+						return
+					}
 
 					handleConn(ctx, conn, hostPort)
 				}),
