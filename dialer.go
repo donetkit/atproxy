@@ -34,21 +34,25 @@ func (_ Def) DirectDialer(
 	noDirectPatterns NoDirectPatterns,
 ) Dialers {
 
-	buf := new(strings.Builder)
-	for i, pattern := range noDirectPatterns {
-		if i > 0 {
-			buf.WriteString("|")
+	var deny *regexp.Regexp
+	if len(noDirectPatterns) > 0 {
+		buf := new(strings.Builder)
+		for i, pattern := range noDirectPatterns {
+			if i > 0 {
+				buf.WriteString("|")
+			}
+			buf.WriteString("(")
+			buf.WriteString(pattern)
+			buf.WriteString(")")
 		}
-		buf.WriteString("(")
-		buf.WriteString(pattern)
-		buf.WriteString(")")
+		deny = regexp.MustCompile(buf.String())
 	}
 
 	return Dialers{
 		{
 			DialContext: new(net.Dialer).DialContext,
 			Name:        "direct",
-			Deny:        regexp.MustCompile(buf.String()),
+			Deny:        deny,
 		},
 	}
 }

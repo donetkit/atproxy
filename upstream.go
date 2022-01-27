@@ -30,16 +30,19 @@ func (_ Def) UpstreamDialers(
 
 	defaultDialContext := new(net.Dialer).DialContext
 
-	buf := new(strings.Builder)
-	for i, pattern := range noUpstreamPatterns {
-		if i > 0 {
-			buf.WriteString("|")
+	var deny *regexp.Regexp
+	if len(noUpstreamPatterns) > 0 {
+		buf := new(strings.Builder)
+		for i, pattern := range noUpstreamPatterns {
+			if i > 0 {
+				buf.WriteString("|")
+			}
+			buf.WriteString("(")
+			buf.WriteString(pattern)
+			buf.WriteString(")")
 		}
-		buf.WriteString("(")
-		buf.WriteString(pattern)
-		buf.WriteString(")")
+		deny = regexp.MustCompile(buf.String())
 	}
-	noUpstreamRe := regexp.MustCompile(buf.String())
 
 	for _, upstream := range upstreams {
 		upstream := upstream
@@ -64,7 +67,7 @@ func (_ Def) UpstreamDialers(
 				return conn, err
 			},
 			Name: upstream.Addr,
-			Deny: noUpstreamRe,
+			Deny: deny,
 		})
 
 	}

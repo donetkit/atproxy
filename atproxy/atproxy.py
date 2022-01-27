@@ -36,6 +36,6 @@ server(
 
 no_direct("github")
 
-no_upstream("163\.com")
-no_upstream("jd\.com")
+no_upstream("163.com")
+no_upstream("jd.com")
 
