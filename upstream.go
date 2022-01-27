@@ -17,6 +17,10 @@ type Upstream struct {
 
 type Upstreams []*Upstream
 
+func (_ Def) Upstreams() Upstreams {
+	return nil
+}
+
 func (_ Def) UpstreamDialers(
 	upstreams Upstreams,
 ) (dialers Dialers) {
