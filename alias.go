@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/reusee/dscope"
 	"github.com/reusee/e4"
 )
 
@@ -14,4 +15,8 @@ var (
 
 	is = errors.Is
 	pt = fmt.Printf
+)
+
+type (
+	Scope = dscope.Scope
 )

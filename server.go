@@ -4,190 +4,115 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"regexp"
-	"strings"
-	"time"
 
 	"github.com/reusee/atproxy/internal"
 )
 
-type Server struct {
-	socksLn     *net.TCPListener
-	httpLn      *net.TCPListener
-	upstreams   []Upstream
-	dialTimeout time.Duration
-	dialer      *net.Dialer
-	maxClients  int
-	clientSem   chan struct{}
-	idleTimeout time.Duration
+type MaxClients int
 
-	dialers        []Dialer
-	httpTransports []*http.Transport
-
-	denyDirectPatterns []string
+func (_ Def) MaxClients() MaxClients {
+	return 0
 }
 
-type DialContext = func(ctx context.Context, addr, network string) (net.Conn, error)
+type ClientSemaphore chan struct{}
 
-func NewServer(
+func (_ Def) ClientSemaphore(
+	max MaxClients,
+) ClientSemaphore {
+	if max == 0 {
+		return nil
+	}
+	return make(chan struct{}, max)
+}
+
+type Serve func(
+	ctx context.Context,
 	socksLn *net.TCPListener,
 	httpLn *net.TCPListener,
-	options ...ServerOption,
-) (
-	server *Server,
-	err error,
-) {
-	defer he(&err)
-
-	server = &Server{
-		socksLn: socksLn,
-		httpLn:  httpLn,
-	}
-	for _, option := range options {
-		option(server)
-	}
-
-	// idle timeout
-	if server.idleTimeout == 0 {
-		server.idleTimeout = time.Minute * 47
-	}
-
-	// max clients
-	if server.maxClients > 0 {
-		server.clientSem = make(chan struct{}, server.maxClients)
-	}
-
-	// dial
-	if server.dialTimeout == 0 {
-		server.dialTimeout = time.Second * 16
-	}
-	if server.dialer == nil {
-		server.dialer = &net.Dialer{
-			Timeout: server.dialTimeout,
-		}
-	}
-
-	// direct dialer
-	dialer := Dialer{
-		DialContext: server.dialer.DialContext,
-		Name:        "direct",
-	}
-	if len(server.denyDirectPatterns) > 0 {
-		buf := new(strings.Builder)
-		for i, pattern := range server.denyDirectPatterns {
-			if i > 0 {
-				buf.WriteString("|")
-			}
-			buf.WriteString(pattern)
-		}
-		dialer.Deny = regexp.MustCompile(buf.String())
-	}
-	server.dialers = append(server.dialers, dialer)
-
-	// upstream
-	for _, upstream := range server.upstreams {
-		upstream := upstream
-		if upstream.Network == "" {
-			upstream.Network = "tcp"
-		}
-		server.dialers = append(server.dialers, Dialer{
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				conn, err := server.dialer.DialContext(ctx, network, upstream.Addr)
-				if err != nil {
-					return nil, err
-				}
-				// handshake
-				//TODO auth
-				if err := internal.Socks5ClientHandshake(conn, addr); err != nil {
-					conn.Close()
-					return nil, err
-				}
-				return conn, err
-			},
-			Name: upstream.Addr,
-		})
-	}
-
-	// http transports
-	for _, dial := range server.dialers {
-		server.httpTransports = append(server.httpTransports, &http.Transport{
-			DialContext: dial.DialContext,
-		})
-	}
-
-	return
-}
-
-func (s *Server) Serve(
-	ctx context.Context,
 ) (
 	err error,
-) {
-	defer he(&err)
+)
 
-	// http
-	go func() {
-		server := &http.Server{
-			Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-				if s.clientSem != nil {
-					s.clientSem <- struct{}{}
-					defer func() {
-						<-s.clientSem
-					}()
-				}
+func (_ Def) Serve(
+	clientSem ClientSemaphore,
+	handleRequest HandleRequest,
+	handleConn HandleConn,
+) Serve {
 
-				if req.Method != http.MethodConnect {
-					s.handleRequest(ctx, req, w)
-					return
-				}
+	return func(
+		ctx context.Context,
+		socksLn *net.TCPListener,
+		httpLn *net.TCPListener,
+	) (
+		err error,
+	) {
+		defer he(&err)
 
-				hostPort := req.Host
-				hijacker, ok := w.(http.Hijacker)
-				if !ok {
-					http.Error(w, "not supported", http.StatusInternalServerError)
-					return
-				}
-				c, _, err := hijacker.Hijack()
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusServiceUnavailable)
-					return
-				}
-				conn := c.(*net.TCPConn)
-				defer conn.Close()
-
-				_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-				ce(err)
-
-				s.handleConn(ctx, conn, hostPort)
-			}),
-		}
-		server.Serve(s.httpLn)
-	}()
-
-	// socks
-	for {
-		conn, err := s.socksLn.AcceptTCP()
-		ce(err)
-
-		if s.maxClients > 0 {
-			s.clientSem <- struct{}{}
-		}
+		// http
 		go func() {
-			if s.maxClients > 0 {
-				defer func() {
-					<-s.clientSem
-				}()
-			}
-			defer conn.Close()
+			server := &http.Server{
+				Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					if clientSem != nil {
+						clientSem <- struct{}{}
+						defer func() {
+							<-clientSem
+						}()
+					}
 
-			hostPort, err := internal.Socks5ServerHandshake(conn)
-			if err != nil {
-				return
-			}
+					if req.Method != http.MethodConnect {
+						handleRequest(ctx, req, w)
+						return
+					}
 
-			s.handleConn(ctx, conn, hostPort)
+					hostPort := req.Host
+					hijacker, ok := w.(http.Hijacker)
+					if !ok {
+						http.Error(w, "not supported", http.StatusInternalServerError)
+						return
+					}
+					c, _, err := hijacker.Hijack()
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusServiceUnavailable)
+						return
+					}
+					conn := c.(*net.TCPConn)
+					defer conn.Close()
+
+					_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+					ce(err)
+
+					handleConn(ctx, conn, hostPort)
+				}),
+			}
+			server.Serve(httpLn)
 		}()
 
-	}
+		// socks
+		for {
+			conn, err := socksLn.AcceptTCP()
+			ce(err)
 
+			if clientSem != nil {
+				clientSem <- struct{}{}
+			}
+
+			go func() {
+				if clientSem != nil {
+					defer func() {
+						<-clientSem
+					}()
+				}
+				defer conn.Close()
+
+				hostPort, err := internal.Socks5ServerHandshake(conn)
+				if err != nil {
+					return
+				}
+
+				handleConn(ctx, conn, hostPort)
+			}()
+
+		}
+
+	}
 }
