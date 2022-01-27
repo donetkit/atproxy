@@ -3,6 +3,8 @@ package atproxy
 import (
 	"context"
 	"net"
+	"regexp"
+	"strings"
 
 	"github.com/reusee/atproxy/internal"
 )
@@ -23,9 +25,21 @@ func (_ Def) Upstreams() Upstreams {
 
 func (_ Def) UpstreamDialers(
 	upstreams Upstreams,
+	noUpstreamPatterns NoUpstreamPatterns,
 ) (dialers Dialers) {
 
 	defaultDialContext := new(net.Dialer).DialContext
+
+	buf := new(strings.Builder)
+	for i, pattern := range noUpstreamPatterns {
+		if i > 0 {
+			buf.WriteString("|")
+		}
+		buf.WriteString("(")
+		buf.WriteString(pattern)
+		buf.WriteString(")")
+	}
+	noUpstreamRe := regexp.MustCompile(buf.String())
 
 	for _, upstream := range upstreams {
 		upstream := upstream
@@ -50,9 +64,16 @@ func (_ Def) UpstreamDialers(
 				return conn, err
 			},
 			Name: upstream.Addr,
+			Deny: noUpstreamRe,
 		})
 
 	}
 
 	return
+}
+
+type NoUpstreamPatterns []string
+
+func (_ Def) NoUpstreamPatterns() NoUpstreamPatterns {
+	return nil
 }

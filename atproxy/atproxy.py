@@ -33,5 +33,9 @@ server(
     "0.0.0.0:50086",
     "100.68.74.6:10000",
 )
+
 no_direct("github")
+
+no_upstream("163\.com")
+no_upstream("jd\.com")
 

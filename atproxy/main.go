@@ -42,6 +42,7 @@ func main() {
 	var serverSpecs []serverSpec
 
 	var noDirectPatterns atproxy.NoDirectPatterns
+	var noUpstreamPattern atproxy.NoUpstreamPatterns
 
 	// load config file
 	exePath, err := os.Executable()
@@ -105,6 +106,11 @@ func main() {
 					noDirectPatterns = append(noDirectPatterns, pattern)
 				}),
 
+				"no_upstream": starlarkutil.MakeFunc("no_upstream", func(pattern string) {
+					pt("rule: no upstream %q\n", pattern)
+					noUpstreamPattern = append(noUpstreamPattern, pattern)
+				}),
+
 				//
 			},
 		)
@@ -123,6 +129,7 @@ func main() {
 			atproxy.NewServerScope().Fork(
 
 				&noDirectPatterns,
+				&noUpstreamPattern,
 
 				func() (upstreams atproxy.Upstreams) {
 					for _, addr := range spec.upstreamAddrs {
