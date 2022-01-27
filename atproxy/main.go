@@ -43,6 +43,7 @@ func main() {
 
 	var noDirectPatterns atproxy.NoDirectPatterns
 	var noUpstreamPattern atproxy.NoUpstreamPatterns
+	var defs []any
 
 	// load config file
 	exePath, err := os.Executable()
@@ -111,6 +112,14 @@ func main() {
 					noUpstreamPattern = append(noUpstreamPattern, pattern)
 				}),
 
+				"pool_capacity": starlarkutil.MakeFunc("pool_capacity", func(capacity atproxy.BytesPoolCapacity) {
+					defs = append(defs, &capacity)
+				}),
+
+				"pool_buffer_size": starlarkutil.MakeFunc("pool_buffer_size", func(size atproxy.BytesPoolBufferSize) {
+					defs = append(defs, &size)
+				}),
+
 				//
 			},
 		)
@@ -126,7 +135,7 @@ func main() {
 			httpLn, err := net.Listen("tcp", spec.httpAddr)
 			ce(err)
 
-			atproxy.NewServerScope().Fork(
+			atproxy.NewServerScope().Fork(defs...).Fork(
 
 				&noDirectPatterns,
 				&noUpstreamPattern,

@@ -39,3 +39,6 @@ no_direct("github")
 no_upstream("163.com")
 no_upstream("jd.com")
 
+pool_capacity(512)
+pool_buffer_size(4 * 1024)
+

@@ -5,13 +5,13 @@ import "github.com/reusee/pr"
 type BytesPoolCapacity int
 
 func (_ Def) BytesPoolCapacity() BytesPoolCapacity {
-	return 256
+	return 512
 }
 
 type BytesPoolBufferSize int
 
 func (_ Def) BytesPoolBufferSize() BytesPoolBufferSize {
-	return 32 * 1024
+	return 4 * 1024
 }
 
 type BytesPool struct {
