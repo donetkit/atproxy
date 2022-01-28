@@ -26,6 +26,7 @@ func (_ Def) HandleConn(
 	bytesPool BytesPool,
 	onSelected OnSelected,
 	onNotSelected OnNotSelected,
+	getPenalty GetPenalty,
 ) HandleConn {
 
 	idleTimeout := time.Duration(_idleTimeout)
@@ -164,6 +165,16 @@ func (_ Def) HandleConn(
 					}
 				}
 
+				// penalty
+				penalty := getPenalty(dialer, hostPort)
+				if penalty > 0 {
+					time.Sleep(penalty)
+					n := atomic.LoadInt32(&chosen)
+					if n >= 0 {
+						noDial = true
+					}
+				}
+
 				// dial
 				var upstream *net.TCPConn
 				if !noDial {
@@ -252,6 +263,7 @@ func (_ Def) HandleConn(
 							// chosen
 							closeWrite(-int64(numDialers))
 						} else {
+							onNotSelected(dialer, hostPort)
 							closeWrite(-1)
 						}
 					}()
@@ -277,10 +289,9 @@ func (_ Def) HandleConn(
 
 							if !selected {
 								if atomic.CompareAndSwapInt32(&chosen, -1, int32(i)) {
-									selected = true
 									onSelected(dialer, hostPort)
+									selected = true
 								} else {
-									onNotSelected(dialer, hostPort)
 									break // not selected
 								}
 							}
