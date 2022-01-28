@@ -24,6 +24,8 @@ func (_ Def) HandleConn(
 	dialers Dialers,
 	_idleTimeout IdleTimeout,
 	bytesPool BytesPool,
+	onSelected OnSelected,
+	onNotSelected OnNotSelected,
 ) HandleConn {
 
 	idleTimeout := time.Duration(_idleTimeout)
@@ -276,7 +278,9 @@ func (_ Def) HandleConn(
 							if !selected {
 								if atomic.CompareAndSwapInt32(&chosen, -1, int32(i)) {
 									selected = true
+									onSelected(dialer, hostPort)
 								} else {
+									onNotSelected(dialer, hostPort)
 									break // not selected
 								}
 							}
