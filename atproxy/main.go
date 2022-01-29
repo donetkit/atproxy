@@ -35,9 +35,10 @@ func main() {
 	}
 
 	type serverSpec struct {
-		socksAddr     string
-		httpAddr      string
-		upstreamAddrs []string
+		Socks     string
+		HTTP      string
+		Upstreams []string
+		NoDirect  bool
 	}
 	var serverSpecs []serverSpec
 
@@ -91,14 +92,18 @@ func main() {
 					upstreams ...string,
 				) {
 					spec := serverSpec{
-						socksAddr: socksAddr,
-						httpAddr:  httpAddr,
+						Socks: socksAddr,
+						HTTP:  httpAddr,
 					}
-					pt("server, socks %v, http %v\n", spec.socksAddr, spec.httpAddr)
 					for _, upstream := range upstreams {
-						pt("\tupstream %v\n", upstream)
-						spec.upstreamAddrs = append(spec.upstreamAddrs, upstream)
+						spec.Upstreams = append(spec.Upstreams, upstream)
 					}
+					pt("server: %+v\n", spec)
+					serverSpecs = append(serverSpecs, spec)
+				}),
+
+				"server_spec": starlarkutil.MakeFunc("server_spec", func(spec serverSpec) {
+					pt("server: %+v\n", spec)
 					serverSpecs = append(serverSpecs, spec)
 				}),
 
@@ -130,9 +135,9 @@ func main() {
 		spec := spec
 		go func() {
 
-			socksLn, err := net.Listen("tcp", spec.socksAddr)
+			socksLn, err := net.Listen("tcp", spec.Socks)
 			ce(err)
-			httpLn, err := net.Listen("tcp", spec.httpAddr)
+			httpLn, err := net.Listen("tcp", spec.HTTP)
 			ce(err)
 
 			atproxy.NewServerScope().Fork(defs...).Fork(
@@ -141,7 +146,7 @@ func main() {
 				&noUpstreamPattern,
 
 				func() (upstreams atproxy.Upstreams) {
-					for _, addr := range spec.upstreamAddrs {
+					for _, addr := range spec.Upstreams {
 						upstreams = append(upstreams, &atproxy.Upstream{
 							Network: "tcp",
 							Addr:    addr,
