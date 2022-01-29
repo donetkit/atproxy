@@ -33,7 +33,12 @@ func (_ Dialers) IsReducer() {}
 
 func (_ Def) DirectDialer(
 	noDirectPatterns NoDirectPatterns,
+	noDirect NoDirect,
 ) Dialers {
+
+	if noDirect {
+		return nil
+	}
 
 	var deny *regexp.Regexp
 	if len(noDirectPatterns) > 0 {
@@ -56,6 +61,12 @@ func (_ Def) DirectDialer(
 			Deny:        deny,
 		},
 	}
+}
+
+type NoDirect bool
+
+func (_ Def) NoDirect() NoDirect {
+	return false
 }
 
 func (_ Def) UpstreamDialers(

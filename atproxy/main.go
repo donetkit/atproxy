@@ -38,7 +38,7 @@ func main() {
 		Socks     string
 		HTTP      string
 		Upstreams []string
-		NoDirect  bool
+		NoDirect  atproxy.NoDirect
 	}
 	var serverSpecs []serverSpec
 
@@ -142,6 +142,7 @@ func main() {
 
 			atproxy.NewServerScope().Fork(defs...).Fork(
 
+				&spec.NoDirect,
 				&noDirectPatterns,
 				&noUpstreamPattern,
 
