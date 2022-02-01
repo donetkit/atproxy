@@ -3,7 +3,7 @@ module github.com/reusee/atproxy
 go 1.18
 
 require (
-	github.com/reusee/dscope v0.0.0-20220201044713-bc66e5150884
+	github.com/reusee/dscope v0.0.0-20220201050034-c31dd0a7389b
 	github.com/reusee/e4 v0.0.0-20211111112921-a1e3637d4313
 	github.com/reusee/pr v0.0.0-20211219085637-0e1ddac0e236
 	github.com/reusee/starlarkutil v0.0.0-20211219090033-2a5093890e47
