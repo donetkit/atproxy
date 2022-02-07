@@ -40,6 +40,8 @@ github.com/reusee/dscope v0.0.0-20220201050034-c31dd0a7389b h1:95QsX+ufN4xDv25t4
 github.com/reusee/dscope v0.0.0-20220201050034-c31dd0a7389b/go.mod h1:13kE69aor4wIlGDzqL5XiItnb460aokFRKVn9UEJ7dA=
 github.com/reusee/dscope v0.0.0-20220207084937-2dc1ae969ee0 h1:T7VnrTwo0nE48r7ZSqYqvzUXNG9X7xxwjLXUj9AFCWA=
 github.com/reusee/dscope v0.0.0-20220207084937-2dc1ae969ee0/go.mod h1:XbuDGqSNaZODQ2P/GCj3AO1fyzcECmWou8EfxAI90WE=
+github.com/reusee/dscope v0.0.0-20220207090324-461122b77aff h1:kiYWjtik8WybxNUYyUjyRhvz2PrbxKWqs9ZR5Tnz3Kk=
+github.com/reusee/dscope v0.0.0-20220207090324-461122b77aff/go.mod h1:XbuDGqSNaZODQ2P/GCj3AO1fyzcECmWou8EfxAI90WE=
 github.com/reusee/e4 v0.0.0-20210220140921-dc464f80154d/go.mod h1:Zfo0mBaNabtnbCtT4+HG9734x9G1VDT3Dwrqhp4wMfE=
 github.com/reusee/e4 v0.0.0-20210402104900-6d2655a0545c/go.mod h1:Zfo0mBaNabtnbCtT4+HG9734x9G1VDT3Dwrqhp4wMfE=
 github.com/reusee/e4 v0.0.0-20210710045002-e0d2a4069a09/go.mod h1:tn7INLQH/YwWai6I0MV227/HgZgagrroPgzfUTLV8No=
