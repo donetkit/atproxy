@@ -61,10 +61,9 @@ func (_ Def) HandleRequest(
 		}
 		w.WriteHeader(resp.StatusCode)
 
-		v, put := bytesPool.Get()
+		ptr, put := bytesPool.Get()
 		defer put()
-		buf := v.([]byte)
-		io.CopyBuffer(w, resp.Body, buf)
+		io.CopyBuffer(w, resp.Body, *ptr)
 
 	}
 }

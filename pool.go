@@ -15,7 +15,7 @@ func (_ Def) BytesPoolBufferSize() BytesPoolBufferSize {
 }
 
 type BytesPool struct {
-	*pr.Pool
+	*pr.Pool[*[]byte]
 }
 
 func (_ Def) BytesPool(
@@ -26,8 +26,9 @@ func (_ Def) BytesPool(
 	return BytesPool{
 		Pool: pr.NewPool(
 			int32(capacity),
-			func() any {
-				return make([]byte, s)
+			func() *[]byte {
+				bs := make([]byte, s)
+				return &bs
 			},
 		),
 	}

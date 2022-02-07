@@ -90,8 +90,8 @@ func (_ Def) HandleConn(
 				if err := conn.SetReadDeadline(deadline); err != nil {
 					break
 				}
-				v, put, incRef := bytesPool.GetRC()
-				buffer := v.([]byte)
+				ptr, put, incRef := bytesPool.GetRC()
+				buffer := *ptr
 				n, err := conn.Read(buffer)
 				if n > 0 {
 					atomic.AddInt64(&connBytesRead, int64(n))
@@ -272,9 +272,9 @@ func (_ Def) HandleConn(
 					}
 					defer closeUpstreamRead()
 
-					v, put := bytesPool.Get()
+					ptr, put := bytesPool.Get()
 					defer put()
-					buffer := v.([]byte)
+					buffer := *ptr
 					selected := false
 					for {
 
