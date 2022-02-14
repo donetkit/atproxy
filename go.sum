@@ -44,6 +44,8 @@ github.com/reusee/dscope v0.0.0-20220207090324-461122b77aff h1:kiYWjtik8WybxNUYy
 github.com/reusee/dscope v0.0.0-20220207090324-461122b77aff/go.mod h1:XbuDGqSNaZODQ2P/GCj3AO1fyzcECmWou8EfxAI90WE=
 github.com/reusee/dscope v0.0.0-20220212101737-0b1eb766bea6 h1:nCxGn5R+DMBmQe2Hyuclim+KEnLBjYGMEK2ENBtnmWY=
 github.com/reusee/dscope v0.0.0-20220212101737-0b1eb766bea6/go.mod h1:XbuDGqSNaZODQ2P/GCj3AO1fyzcECmWou8EfxAI90WE=
+github.com/reusee/dscope v0.0.0-20220214071500-aeb731ef45cc h1:toK3BkwgSZpH2myAUtGxNfDWaH1Qv2P+VLc+cM3iI2U=
+github.com/reusee/dscope v0.0.0-20220214071500-aeb731ef45cc/go.mod h1:XbuDGqSNaZODQ2P/GCj3AO1fyzcECmWou8EfxAI90WE=
 github.com/reusee/e4 v0.0.0-20210220140921-dc464f80154d/go.mod h1:Zfo0mBaNabtnbCtT4+HG9734x9G1VDT3Dwrqhp4wMfE=
 github.com/reusee/e4 v0.0.0-20210402104900-6d2655a0545c/go.mod h1:Zfo0mBaNabtnbCtT4+HG9734x9G1VDT3Dwrqhp4wMfE=
 github.com/reusee/e4 v0.0.0-20210710045002-e0d2a4069a09/go.mod h1:tn7INLQH/YwWai6I0MV227/HgZgagrroPgzfUTLV8No=
@@ -82,6 +84,8 @@ go.starlark.net v0.0.0-20211203141949-70c0e40ae128 h1:bxH+EXOo87zEOwKDdZ8Tevgi6i
 go.starlark.net v0.0.0-20211203141949-70c0e40ae128/go.mod h1:t3mmBBPzAVvK0L0n1drDmrQsJ8FoIx4INCqVMTr/Zo0=
 go.starlark.net v0.0.0-20220203230714-bb14e151c28f h1:aW4TkS39/naJa9wPSbIXtZUQOlvuUh8gxCsLRrJoByU=
 go.starlark.net v0.0.0-20220203230714-bb14e151c28f/go.mod h1:t3mmBBPzAVvK0L0n1drDmrQsJ8FoIx4INCqVMTr/Zo0=
+go.starlark.net v0.0.0-20220213143740-c55a923347b1 h1:CIAbrK9/d5xfj5LlSS+yLtP6BSCNZD3uvKcpahLzkX0=
+go.starlark.net v0.0.0-20220213143740-c55a923347b1/go.mod h1:t3mmBBPzAVvK0L0n1drDmrQsJ8FoIx4INCqVMTr/Zo0=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
