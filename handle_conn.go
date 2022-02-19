@@ -6,12 +6,19 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/reusee/pr"
 )
 
 type IdleTimeout time.Duration
 
 func (_ Def) IdleTimeout() IdleTimeout {
 	return IdleTimeout(time.Minute * 5)
+}
+
+type OutboundPacket struct {
+	Data []byte
+	Put  func() bool
 }
 
 type HandleConn func(
@@ -31,6 +38,11 @@ func (_ Def) HandleConn(
 
 	idleTimeout := time.Duration(_idleTimeout)
 
+	outboundsPool := pr.NewPool(4, func() *[]chan OutboundPacket { //TODO
+		slice := make([]chan OutboundPacket, 0, len(dialers))
+		return &slice
+	})
+
 	return func(
 		parentCtx context.Context,
 		conn *net.TCPConn,
@@ -45,11 +57,12 @@ func (_ Def) HandleConn(
 			Cancel  func()
 		}
 		ctxs := make([]*Ctx, 0, numDialers)
-		type OutboundPacket struct {
-			Data []byte
-			Put  func() bool
-		}
-		outbounds := make([]chan OutboundPacket, 0, numDialers)
+		ptr, put := outboundsPool.Get()
+		outbounds := *ptr
+		defer func() {
+			*ptr = outbounds[:0]
+			put()
+		}()
 		outboundsClosed := make([]bool, 0, numDialers)
 		for i := 0; i < numDialers; i++ {
 			outbounds = append(outbounds, make(chan OutboundPacket, 512))
