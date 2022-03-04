@@ -32,14 +32,15 @@ server_spec(
     NoDirect = True,
 )
 server_spec(
-    Socks = "0.0.0.0:50000",
-    HTTP = "0.0.0.0:50086",
+    Socks = "0.0.0.0:60000",
+    HTTP = "0.0.0.0:60086",
     Upstreams = ["100.68.74.6:10000"],
     NoDirect = True,
 )
 
 no_direct("github")
 no_direct("google")
+no_direct("gstatic")
 
 no_upstream("163.com")
 no_upstream("jd.com")
