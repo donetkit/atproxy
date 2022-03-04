@@ -65,7 +65,7 @@ func (_ Def) HandleConn(
 		}()
 		outboundsClosed := make([]bool, 0, numDialers)
 		for i := 0; i < numDialers; i++ {
-			outbounds = append(outbounds, make(chan OutboundPacket, 512))
+			outbounds = append(outbounds, make(chan OutboundPacket, 16))
 			outboundsClosed = append(outboundsClosed, false)
 			ctx, cancel := context.WithCancel(parentCtx)
 			ctxs = append(ctxs, &Ctx{
