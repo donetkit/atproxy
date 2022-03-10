@@ -51,8 +51,8 @@ func (_ Def) Penalty() (
 			hostPort: hostPort,
 		}
 		l.Lock()
+		defer l.Unlock()
 		seq := infos[k]
-		l.Unlock()
 		n := 0
 		for i := len(seq) - 1; i >= 0; i-- {
 			if !seq[i] {
