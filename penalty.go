@@ -13,58 +13,60 @@ func (_ Def) Penalty() (
 	get GetPenalty,
 ) {
 
-	type key struct {
-		dialer   *Dialer
-		hostPort string
+	type Info struct {
+		window   time.Time
+		selected []*Dialer
 	}
 
 	var l sync.Mutex
-	infos := make(map[key][]bool)
+	infos := make(map[string]*Info)
 
 	const threshold = 3
 
-	set := func(dialer *Dialer, hostPort string, selected bool) {
-		k := key{
-			dialer:   dialer,
-			hostPort: hostPort,
-		}
+	set := func(dialer *Dialer, hostPort string) {
 		l.Lock()
 		defer l.Unlock()
-		infos[k] = append(infos[k], selected)
-		if len(infos[k]) > threshold {
-			copy(infos[k], infos[k][len(infos[k])-threshold:])
-			infos[k] = infos[k][:threshold]
+		info := infos[hostPort]
+		if info == nil {
+			info = &Info{
+				window: time.Now(),
+			}
+			infos[hostPort] = info
+		}
+		if time.Since(info.window) > time.Hour {
+			info.window = time.Now()
+			info.selected = info.selected[:0]
+		}
+		info.selected = append(info.selected, dialer)
+		i := 0
+		for len(info.selected) > threshold {
+			info.selected[i] = info.selected[len(info.selected)-1]
+			i++
+			info.selected = info.selected[:len(info.selected)-1]
 		}
 	}
 
 	onSelected = func(dialer *Dialer, hostPort string) {
-		set(dialer, hostPort, true)
+		set(dialer, hostPort)
 	}
 
 	onNotSelected = func(dialer *Dialer, hostPort string) {
-		set(dialer, hostPort, false)
 	}
 
 	get = func(dialer *Dialer, hostPort string) time.Duration {
-		k := key{
-			dialer:   dialer,
-			hostPort: hostPort,
-		}
 		l.Lock()
 		defer l.Unlock()
-		seq := infos[k]
-		n := 0
-		for i := len(seq) - 1; i >= 0; i-- {
-			if !seq[i] {
-				n++
-			} else {
-				break
+		info := infos[hostPort]
+		if info == nil {
+			return 0
+		}
+		numNotSelected := 0
+		for _, d := range info.selected {
+			if d != dialer {
+				numNotSelected++
 			}
 		}
-		if n >= threshold {
-			return time.Millisecond * 200
-		}
-		return 0
+		return time.Millisecond * 200 * time.Duration(numNotSelected)
 	}
 
 	return
