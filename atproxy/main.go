@@ -86,22 +86,6 @@ func main() {
 					goto get
 				}),
 
-				"server": starlarkutil.MakeFunc("server", func(
-					socksAddr string,
-					httpAddr string,
-					upstreams ...string,
-				) {
-					spec := serverSpec{
-						Socks: socksAddr,
-						HTTP:  httpAddr,
-					}
-					for _, upstream := range upstreams {
-						spec.Upstreams = append(spec.Upstreams, upstream)
-					}
-					pt("server: %+v\n", spec)
-					serverSpecs = append(serverSpecs, spec)
-				}),
-
 				"server_spec": starlarkutil.MakeFunc("server_spec", func(spec serverSpec) {
 					pt("server: %+v\n", spec)
 					serverSpecs = append(serverSpecs, spec)
