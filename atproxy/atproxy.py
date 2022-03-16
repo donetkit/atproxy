@@ -16,26 +16,26 @@ server_spec(
     ],
 )
 server_spec(
-    Socks = "0.0.0.0:20000",
-    HTTP = "0.0.0.0:20086",
+    Socks = "0.0.0.0:11000",
+    HTTP = "0.0.0.0:11086",
     Upstreams = ["100.118.120.94:10000"],
     NoDirect = True,
 )
 server_spec(
-    Socks = "0.0.0.0:30000",
-    HTTP = "0.0.0.0:30086",
+    Socks = "0.0.0.0:12000",
+    HTTP = "0.0.0.0:12086",
     Upstreams = ["100.111.147.87:10000"],
     NoDirect = True,
 )
 server_spec(
-    Socks = "0.0.0.0:40000",
-    HTTP = "0.0.0.0:40086",
+    Socks = "0.0.0.0:13000",
+    HTTP = "0.0.0.0:13086",
     Upstreams = ["100.73.249.57:10000"],
     NoDirect = True,
 )
 server_spec(
-    Socks = "0.0.0.0:60000",
-    HTTP = "0.0.0.0:60086",
+    Socks = "0.0.0.0:14000",
+    HTTP = "0.0.0.0:14086",
     Upstreams = ["100.68.74.6:10000"],
     NoDirect = True,
 )
