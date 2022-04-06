@@ -1,0 +1,13 @@
+[Unit]
+Description=atproxy
+
+[Service]
+Type=simple
+ExecStart=/home/reus/bin/atproxy
+Restart=always
+LimitNOFILE=100000
+After=network-online.target
+Wants=network-online.target
+
+[Install]
+WantedBy=multi-user.target
