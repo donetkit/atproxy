@@ -98,6 +98,7 @@ func (_ Def) HandleConn(
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			var chosenCh chan OutboundPacket
 			for {
 				deadline := time.Now().Add(idleTimeout)
 				if err := conn.SetReadDeadline(deadline); err != nil {
@@ -106,16 +107,26 @@ func (_ Def) HandleConn(
 				ptr, put, incRef := bytesPool.GetRC()
 				buffer := *ptr
 				n, err := conn.Read(buffer)
+
 				if n > 0 {
 					atomic.AddInt64(&connBytesRead, int64(n))
 					buffer = buffer[:n]
-					if i := atomic.LoadInt32(&chosen); i != -1 {
-						// send to the chosen one
+
+					if chosenCh != nil {
 						incRef()
-						outbounds[i] <- OutboundPacket{
+						chosenCh <- OutboundPacket{
 							Data: buffer,
 							Put:  put,
 						}
+
+					} else if i := atomic.LoadInt32(&chosen); i != -1 {
+						chosenCh = outbounds[i]
+						incRef()
+						chosenCh <- OutboundPacket{
+							Data: buffer,
+							Put:  put,
+						}
+
 						for n, outbound := range outbounds {
 							if n == int(i) {
 								continue
@@ -126,8 +137,8 @@ func (_ Def) HandleConn(
 								ctxs[n].Cancel()
 							}
 						}
+
 					} else {
-						// send to all
 						for _, ch := range outbounds {
 							incRef()
 							ch <- OutboundPacket{
@@ -136,11 +147,15 @@ func (_ Def) HandleConn(
 							}
 						}
 					}
+
 				}
+
 				put()
+
 				if err != nil {
 					break
 				}
+
 			}
 			closeConnRead()
 			// close write to chans
@@ -166,6 +181,7 @@ func (_ Def) HandleConn(
 
 		for i, dialer := range dialers {
 			i := i
+			outboundCh := outbounds[i]
 			dialer := dialer
 			wg.Add(1)
 			go func() {
@@ -229,7 +245,7 @@ func (_ Def) HandleConn(
 					}()
 					if upstream != nil {
 						for {
-							outboundPacket, ok := <-outbounds[i]
+							outboundPacket, ok := <-outboundCh
 							if !ok {
 								break
 							}
@@ -258,7 +274,7 @@ func (_ Def) HandleConn(
 					} else {
 						closeRead(-1)
 					}
-					for outboundPacket := range outbounds[i] {
+					for outboundPacket := range outboundCh {
 						outboundPacket.Put()
 					}
 				}()
