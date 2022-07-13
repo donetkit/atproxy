@@ -38,7 +38,7 @@ func (_ Def) HandleConn(
 
 	idleTimeout := time.Duration(_idleTimeout)
 
-	outboundsPool := pr.NewPool(4, func() *[]chan OutboundPacket { //TODO
+	outboundsPool := pr.NewPool(4, func() *[]chan OutboundPacket {
 		slice := make([]chan OutboundPacket, 0, len(dialers))
 		return &slice
 	})
@@ -78,8 +78,6 @@ func (_ Def) HandleConn(
 		wg := new(sync.WaitGroup)
 
 		var once1, once2 sync.Once
-		var connBytesRead int64
-		var connBytesWritten int64
 		closeConnRead := func() {
 			once1.Do(func() {
 				conn.CloseRead()
@@ -109,7 +107,6 @@ func (_ Def) HandleConn(
 				n, err := conn.Read(buffer)
 
 				if n > 0 {
-					atomic.AddInt64(&connBytesRead, int64(n))
 					buffer = buffer[:n]
 
 					if chosenCh != nil {
@@ -215,8 +212,6 @@ func (_ Def) HandleConn(
 
 				subWg := new(sync.WaitGroup)
 				var once1, once2 sync.Once
-				var upstreamBytesWritten int64
-				var upstreamBytesRead int64
 				closeUpstreamRead := func() {
 					once1.Do(func() {
 						if upstream != nil {
@@ -263,7 +258,6 @@ func (_ Def) HandleConn(
 								outboundPacket.Put()
 								break
 							}
-							atomic.AddInt64(&upstreamBytesWritten, int64(len(outboundPacket.Data)))
 							outboundPacket.Put()
 						}
 						closeUpstreamWrite()
@@ -314,7 +308,6 @@ func (_ Def) HandleConn(
 						n, err := upstream.Read(buffer)
 
 						if n > 0 {
-							atomic.AddInt64(&upstreamBytesRead, int64(n))
 
 							if !selected {
 								if atomic.CompareAndSwapInt32(&chosen, -1, int32(i)) {
@@ -332,7 +325,6 @@ func (_ Def) HandleConn(
 							if err != nil {
 								break
 							}
-							atomic.AddInt64(&connBytesWritten, int64(n))
 
 						}
 
