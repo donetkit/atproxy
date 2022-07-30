@@ -141,7 +141,7 @@ func main() {
 					return
 				},
 
-				func() atproxy.OnNotSelected {
+				func() atproxy.OnSelected {
 					return func(dialer *atproxy.Dialer, hostPort string) {
 						pt("%8s: %s\n", dialer.Name, hostPort)
 					}
