@@ -37,7 +37,7 @@ func main() {
 	type serverSpec struct {
 		Socks     string
 		HTTP      string
-		Upstreams []string
+		Upstreams map[string]string
 		NoDirect  atproxy.NoDirect
 	}
 	var serverSpecs []serverSpec
@@ -131,13 +131,20 @@ func main() {
 				&noUpstreamPattern,
 
 				func() (upstreams atproxy.Upstreams) {
-					for _, addr := range spec.Upstreams {
+					for name, addr := range spec.Upstreams {
 						upstreams = append(upstreams, &atproxy.Upstream{
 							Network: "tcp",
+							Name:    name,
 							Addr:    addr,
 						})
 					}
 					return
+				},
+
+				func() atproxy.OnNotSelected {
+					return func(dialer *atproxy.Dialer, hostPort string) {
+						pt("%8s: %s\n", dialer.Name, hostPort)
+					}
 				},
 
 				//

@@ -14,6 +14,7 @@ import (
 type Dialer struct {
 	DialContext DialContext
 	Name        string
+	Addr        string
 	Deny        *regexp.Regexp
 }
 
@@ -112,7 +113,8 @@ func (_ Def) UpstreamDialers(
 				}
 				return conn, err
 			},
-			Name: upstream.Addr,
+			Name: upstream.Name,
+			Addr: upstream.Addr,
 			Deny: deny,
 		})
 
