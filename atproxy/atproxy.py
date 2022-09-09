@@ -55,6 +55,7 @@ no_direct("mypikpak")
 
 no_upstream("163.com")
 no_upstream("jd.com")
+no_upstream("360buyimg.com")
 
 pool_capacity(512)
 pool_buffer_size(4 * 1024)
