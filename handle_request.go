@@ -13,12 +13,12 @@ type HandleRequest func(
 	w http.ResponseWriter,
 )
 
-func (_ Def) HandleRequest(
+func (Def) HandleRequest(
 	transports []*http.Transport,
 	bytesPool BytesPool,
 ) HandleRequest {
 	return func(
-		parentCtx context.Context,
+		_ context.Context,
 		req *http.Request,
 		w http.ResponseWriter,
 	) {

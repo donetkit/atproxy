@@ -4,13 +4,13 @@ import "github.com/reusee/pr"
 
 type BytesPoolCapacity int
 
-func (_ Def) BytesPoolCapacity() BytesPoolCapacity {
+func (Def) BytesPoolCapacity() BytesPoolCapacity {
 	return 512
 }
 
 type BytesPoolBufferSize int
 
-func (_ Def) BytesPoolBufferSize() BytesPoolBufferSize {
+func (Def) BytesPoolBufferSize() BytesPoolBufferSize {
 	return 4 * 1024
 }
 
@@ -18,7 +18,7 @@ type BytesPool struct {
 	*pr.Pool[*[]byte]
 }
 
-func (_ Def) BytesPool(
+func (Def) BytesPool(
 	capacity BytesPoolCapacity,
 	size BytesPoolBufferSize,
 ) BytesPool {

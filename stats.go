@@ -9,9 +9,9 @@ type OnSelected func(
 
 var _ dscope.Reducer = OnSelected(nil)
 
-func (_ OnSelected) IsReducer() {}
+func (OnSelected) IsReducer() {}
 
-func (_ Def) OnSelected() OnSelected {
+func (Def) OnSelected() OnSelected {
 	return func(
 		dialer *Dialer,
 		hostPort string,
@@ -26,9 +26,9 @@ type OnNotSelected func(
 
 var _ dscope.Reducer = OnNotSelected(nil)
 
-func (_ OnNotSelected) IsReducer() {}
+func (OnNotSelected) IsReducer() {}
 
-func (_ Def) OnNotSelected() OnNotSelected {
+func (Def) OnNotSelected() OnNotSelected {
 	return func(
 		dialer *Dialer,
 		hostPort string,

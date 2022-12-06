@@ -11,6 +11,6 @@ type Upstream struct {
 
 type Upstreams []*Upstream
 
-func (_ Def) Upstreams() Upstreams {
+func (Def) Upstreams() Upstreams {
 	return nil
 }

@@ -22,7 +22,7 @@ type DialContext = func(ctx context.Context, addr, network string) (net.Conn, er
 
 type DialTimeout time.Duration
 
-func (_ Def) DialTimeout() DialTimeout {
+func (Def) DialTimeout() DialTimeout {
 	return DialTimeout(time.Second * 32)
 }
 
@@ -30,9 +30,9 @@ type Dialers []*Dialer
 
 var _ dscope.Reducer = Dialers{}
 
-func (_ Dialers) IsReducer() {}
+func (Dialers) IsReducer() {}
 
-func (_ Def) DirectDialer(
+func (Def) DirectDialer(
 	noDirectPatterns NoDirectPatterns,
 	noDirect NoDirect,
 ) Dialers {
@@ -66,11 +66,11 @@ func (_ Def) DirectDialer(
 
 type NoDirect bool
 
-func (_ Def) NoDirect() NoDirect {
+func (Def) NoDirect() NoDirect {
 	return false
 }
 
-func (_ Def) UpstreamDialers(
+func (Def) UpstreamDialers(
 	upstreams Upstreams,
 	noUpstreamPatterns NoUpstreamPatterns,
 ) (dialers Dialers) {
@@ -125,12 +125,12 @@ func (_ Def) UpstreamDialers(
 
 type NoDirectPatterns []string
 
-func (_ Def) NoDirectPatterns() NoDirectPatterns {
+func (Def) NoDirectPatterns() NoDirectPatterns {
 	return nil
 }
 
 type NoUpstreamPatterns []string
 
-func (_ Def) NoUpstreamPatterns() NoUpstreamPatterns {
+func (Def) NoUpstreamPatterns() NoUpstreamPatterns {
 	return nil
 }

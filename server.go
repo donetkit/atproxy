@@ -10,13 +10,13 @@ import (
 
 type MaxClients int
 
-func (_ Def) MaxClients() MaxClients {
+func (Def) MaxClients() MaxClients {
 	return 0
 }
 
 type ClientSemaphore chan struct{}
 
-func (_ Def) ClientSemaphore(
+func (Def) ClientSemaphore(
 	max MaxClients,
 ) ClientSemaphore {
 	if max == 0 {
@@ -33,7 +33,7 @@ type Serve func(
 	err error,
 )
 
-func (_ Def) Serve(
+func (Def) Serve(
 	clientSem ClientSemaphore,
 	handleRequest HandleRequest,
 	handleConn HandleConn,

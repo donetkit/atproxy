@@ -12,7 +12,7 @@ import (
 
 type IdleTimeout time.Duration
 
-func (_ Def) IdleTimeout() IdleTimeout {
+func (Def) IdleTimeout() IdleTimeout {
 	return IdleTimeout(time.Minute * 5)
 }
 
@@ -27,7 +27,7 @@ type HandleConn func(
 	hostPort string,
 )
 
-func (_ Def) HandleConn(
+func (Def) HandleConn(
 	dialers Dialers,
 	_idleTimeout IdleTimeout,
 	bytesPool BytesPool,
