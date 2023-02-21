@@ -60,3 +60,4 @@ no_upstream("360buyimg.com")
 pool_capacity(512)
 pool_buffer_size(4 * 1024)
 
+profile("prof")

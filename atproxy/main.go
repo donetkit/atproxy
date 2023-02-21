@@ -3,8 +3,11 @@ package main
 import (
 	"net"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"runtime/pprof"
 	"strings"
+	"syscall"
 	"time"
 
 	"net/http"
@@ -32,6 +35,11 @@ func main() {
 		}
 		fn()
 		return
+	}
+
+	var onExitFuncs []func()
+	onExit := func(fn func()) {
+		onExitFuncs = append(onExitFuncs, fn)
 	}
 
 	type serverSpec struct {
@@ -109,6 +117,17 @@ func main() {
 					defs = append(defs, &size)
 				}),
 
+				"profile": starlarkutil.MakeFunc("profile", func(path string) {
+					pt("write cpu profile to %s\n", path)
+					out, err := os.Create(path)
+					ce(err)
+					ce(pprof.StartCPUProfile(out))
+					onExit(func() {
+						pprof.StopCPUProfile()
+						ce(out.Close())
+					})
+				}),
+
 				//
 			},
 		)
@@ -162,6 +181,11 @@ func main() {
 
 	}
 
-	select {}
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM, os.Interrupt)
+	<-ch
+	for _, fn := range onExitFuncs {
+		fn()
+	}
 
 }
