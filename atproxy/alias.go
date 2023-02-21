@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/reusee/e4"
+	"github.com/reusee/e5"
 )
 
 var (
 	pt = fmt.Printf
-	ce = e4.Check
+	ce = e5.Check
 )

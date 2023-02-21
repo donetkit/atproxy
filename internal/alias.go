@@ -3,13 +3,13 @@ package internal
 import (
 	"errors"
 
-	"github.com/reusee/e4"
+	"github.com/reusee/e5"
 )
 
 var (
-	ce = e4.Check
-	he = e4.Handle
-	we = e4.Wrap
+	ce = e5.Check
+	he = e5.Handle
+	we = e5.Wrap
 
 	is = errors.Is
 )

@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/reusee/e4"
+	"github.com/reusee/e5"
 	"golang.org/x/sys/windows/svc"
 	"golang.org/x/sys/windows/svc/eventlog"
 	"golang.org/x/sys/windows/svc/mgr"
@@ -31,7 +31,7 @@ func init() {
 		ce(err)
 		defer s.Close()
 		ce(eventlog.InstallAsEventCreate(serviceName, eventlog.Error|eventlog.Warning|eventlog.Info),
-			e4.Do(func() {
+			e5.Do(func() {
 				s.Delete()
 			}))
 	}

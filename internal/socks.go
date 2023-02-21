@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/reusee/e4"
+	"github.com/reusee/e5"
 )
 
 const (
@@ -54,7 +54,7 @@ func Socks5ServerHandshake(conn net.Conn) (hostPort string, err error) {
 	ce(binary.Read(conn, binary.BigEndian, &greetings))
 	if greetings.Version != VERSION {
 		err = we.With(
-			e4.NewInfo("bad version"),
+			e5.Info("bad version"),
 		)(ErrBadHandshake)
 		return
 	}
@@ -63,7 +63,7 @@ func Socks5ServerHandshake(conn net.Conn) (hostPort string, err error) {
 	ce(err)
 	if bytes.IndexByte(authMethods, METHOD_NOT_REQUIRED) == -1 {
 		err = we.With(
-			e4.NewInfo("bad auth method"),
+			e5.Info("bad auth method"),
 		)(ErrBadHandshake)
 		return
 	}
@@ -82,13 +82,13 @@ func Socks5ServerHandshake(conn net.Conn) (hostPort string, err error) {
 	ce(binary.Read(conn, binary.BigEndian, &request))
 	if request.Version != VERSION {
 		err = we.With(
-			e4.NewInfo("bad version"),
+			e5.Info("bad version"),
 		)(ErrBadHandshake)
 		return
 	}
 	if request.Command != CMD_CONNECT {
 		err = we.With(
-			e4.NewInfo("bad command"),
+			e5.Info("bad command"),
 		)(ErrBadHandshake)
 		return
 	}
@@ -96,7 +96,7 @@ func Socks5ServerHandshake(conn net.Conn) (hostPort string, err error) {
 		request.AddressType != ADDR_TYPE_DOMAIN &&
 		request.AddressType != ADDR_TYPE_IPV6 {
 		err = we.With(
-			e4.NewInfo("bad address type"),
+			e5.Info("bad address type"),
 		)(ErrBadHandshake)
 		return
 	}
@@ -156,7 +156,7 @@ func Socks5ClientHandshake(conn net.Conn, addr string) (err error) {
 	ce(err)
 	if bs[0] != VERSION || bs[1] != METHOD_NOT_REQUIRED {
 		return we.With(
-			e4.NewInfo("bad proxy"),
+			e5.Info("bad proxy"),
 		)(ErrBadHandshake)
 	}
 	_, err = conn.Write([]byte{
@@ -177,7 +177,7 @@ func Socks5ClientHandshake(conn net.Conn, addr string) (err error) {
 		bs[1] != REP_SUCCEED ||
 		bs[2] != RESERVED {
 		return we.With(
-			e4.NewInfo("bad proxy"),
+			e5.Info("bad proxy"),
 		)(ErrBadHandshake)
 	}
 	return nil
