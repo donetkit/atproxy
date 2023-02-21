@@ -3,18 +3,12 @@ module github.com/reusee/atproxy
 go 1.18
 
 require (
-	github.com/reusee/dscope v0.0.0-20220419045426-08712b277f50
-	github.com/reusee/e5 v0.0.0-20221103014142-7fb507f8cb8f
+	github.com/reusee/dscope v0.0.0-20230221072941-3be2663fa528
+	github.com/reusee/e5 v0.0.0-20230128094953-f2ff5c9c135a
 	github.com/reusee/pr2 v0.0.0-20230221022320-e074b9be574d
-	github.com/reusee/starlarkutil v0.0.0-20211219090033-2a5093890e47
-	go.starlark.net v0.0.0-20220213143740-c55a923347b1
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158
+	github.com/reusee/starlarkutil v0.0.0-20230221073203-a183edc252f4
+	go.starlark.net v0.0.0-20230128213706-3f75dec8e403
+	golang.org/x/sys v0.5.0
 )
 
-require (
-	github.com/emicklei/dot v0.16.0 // indirect
-	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/reusee/e4 v0.0.0-20220506070652-6c9539e91f36 // indirect
-	github.com/reusee/pr v0.0.0-20220208031913-094af0124f2c // indirect
-	github.com/reusee/sb v0.0.0-20220208031045-2aad8080739f // indirect
-)
+require github.com/reusee/sb v0.0.0-20230221073108-a02c790e8a8a // indirect
