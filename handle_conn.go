@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/reusee/pr"
+	"github.com/reusee/pr2"
 )
 
 type IdleTimeout time.Duration
@@ -38,7 +38,7 @@ func (Def) HandleConn(
 
 	idleTimeout := time.Duration(_idleTimeout)
 
-	outboundsPool := pr.NewPool(4, func() *[]chan OutboundPacket {
+	outboundsPool := pr2.NewPool(128, func() *[]chan OutboundPacket {
 		slice := make([]chan OutboundPacket, 0, len(dialers))
 		return &slice
 	})

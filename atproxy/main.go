@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net"
 	"os"
 	"os/signal"
@@ -14,12 +15,9 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/reusee/atproxy"
-	"github.com/reusee/pr"
 	"github.com/reusee/starlarkutil"
 	"go.starlark.net/starlark"
 )
-
-var globalWaitTree = pr.NewRootWaitTree()
 
 func main() {
 
@@ -170,8 +168,9 @@ func main() {
 			).Call(func(
 				serve atproxy.Serve,
 			) {
+				ctx := context.Background()
 				ce(serve(
-					globalWaitTree.Ctx,
+					ctx,
 					socksLn.(*net.TCPListener),
 					httpLn.(*net.TCPListener),
 				))

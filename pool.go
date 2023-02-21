@@ -1,6 +1,6 @@
 package atproxy
 
-import "github.com/reusee/pr"
+import "github.com/reusee/pr2"
 
 type BytesPoolCapacity int
 
@@ -15,7 +15,7 @@ func (Def) BytesPoolBufferSize() BytesPoolBufferSize {
 }
 
 type BytesPool struct {
-	*pr.Pool[*[]byte]
+	*pr2.Pool[*[]byte]
 }
 
 func (Def) BytesPool(
@@ -24,8 +24,8 @@ func (Def) BytesPool(
 ) BytesPool {
 	s := int(size)
 	return BytesPool{
-		Pool: pr.NewPool(
-			int32(capacity),
+		Pool: pr2.NewPool(
+			uint32(capacity),
 			func() *[]byte {
 				bs := make([]byte, s)
 				return &bs
