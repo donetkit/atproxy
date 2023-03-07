@@ -3,12 +3,12 @@ module github.com/reusee/atproxy
 go 1.18
 
 require (
-	github.com/reusee/dscope v0.0.0-20230221072941-3be2663fa528
+	github.com/reusee/dscope v0.0.0-20230307161459-37cbe8c9d3cc
 	github.com/reusee/e5 v0.0.0-20230128094953-f2ff5c9c135a
-	github.com/reusee/pr2 v0.0.0-20230221022320-e074b9be574d
-	github.com/reusee/starlarkutil v0.0.0-20230221073203-a183edc252f4
-	go.starlark.net v0.0.0-20230128213706-3f75dec8e403
-	golang.org/x/sys v0.5.0
+	github.com/reusee/pr2 v0.0.0-20230306155640-52a016ca8efe
+	github.com/reusee/starlarkutil v0.0.0-20230221075612-ea3884e11400
+	go.starlark.net v0.0.0-20230302034142-4b1e35fe2254
+	golang.org/x/sys v0.6.0
 	tailscale.com v1.36.2
 )
 
@@ -50,7 +50,7 @@ require (
 	github.com/mdlayher/socket v0.2.3 // indirect
 	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/reusee/sb v0.0.0-20230221073108-a02c790e8a8a // indirect
+	github.com/reusee/sb v0.0.0-20230307161635-712e1e00a7cf // indirect
 	github.com/tailscale/certstore v0.1.1-0.20220316223106-78d6e1c49d8d // indirect
 	github.com/tailscale/golang-x-crypto v0.0.0-20221102133106-bc99ab8c2d17 // indirect
 	github.com/tailscale/goupnp v1.0.1-0.20210804011211-c64d0f06ea05 // indirect

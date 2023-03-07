@@ -26,7 +26,7 @@ func (Def) BytesPool(
 	return BytesPool{
 		Pool: pr2.NewPool(
 			uint32(capacity),
-			func() *[]byte {
+			func(_ pr2.PoolPutFunc) *[]byte {
 				bs := make([]byte, s)
 				return &bs
 			},

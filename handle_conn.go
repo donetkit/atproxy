@@ -38,7 +38,7 @@ func (Def) HandleConn(
 
 	idleTimeout := time.Duration(_idleTimeout)
 
-	outboundsPool := pr2.NewPool(128, func() *[]chan OutboundPacket {
+	outboundsPool := pr2.NewPool(128, func(_ pr2.PoolPutFunc) *[]chan OutboundPacket {
 		slice := make([]chan OutboundPacket, 0, len(dialers))
 		return &slice
 	})
