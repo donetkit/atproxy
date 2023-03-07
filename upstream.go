@@ -7,6 +7,7 @@ type Upstream struct {
 	Addr        string
 	User        string
 	Password    string
+	IsTailscale bool
 }
 
 type Upstreams []*Upstream

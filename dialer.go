@@ -9,6 +9,7 @@ import (
 
 	"github.com/reusee/atproxy/internal"
 	"github.com/reusee/dscope"
+	"tailscale.com/tsnet"
 )
 
 type Dialer struct {
@@ -73,6 +74,7 @@ func (Def) NoDirect() NoDirect {
 func (Def) UpstreamDialers(
 	upstreams Upstreams,
 	noUpstreamPatterns NoUpstreamPatterns,
+	tsServer *tsnet.Server,
 ) (dialers Dialers) {
 
 	defaultDialContext := new(net.Dialer).DialContext
@@ -97,6 +99,10 @@ func (Def) UpstreamDialers(
 		dial := defaultDialContext
 		if upstream.DialContext != nil {
 			dial = upstream.DialContext
+		}
+		if upstream.IsTailscale && tsServer != nil {
+			dial = tsServer.Dial
+			pt("tailscale upstream: %s\n", upstream.Name)
 		}
 
 		dialers = append(dialers, &Dialer{

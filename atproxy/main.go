@@ -150,9 +150,10 @@ func main() {
 				func() (upstreams atproxy.Upstreams) {
 					for name, addr := range spec.Upstreams {
 						upstreams = append(upstreams, &atproxy.Upstream{
-							Network: "tcp",
-							Name:    name,
-							Addr:    addr,
+							Network:     "tcp",
+							Name:        name,
+							Addr:        addr,
+							IsTailscale: strings.HasPrefix(name, "ts:"),
 						})
 					}
 					return

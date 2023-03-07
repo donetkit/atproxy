@@ -75,15 +75,14 @@ func (Def) Serve(
 						http.Error(w, err.Error(), http.StatusServiceUnavailable)
 						return
 					}
-					conn := c.(*net.TCPConn)
-					defer conn.Close()
+					defer c.Close()
 
-					_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+					_, err = c.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
 					if err != nil {
 						return
 					}
 
-					handleConn(ctx, conn, hostPort)
+					handleConn(ctx, c, hostPort)
 				}),
 			}
 			server.Serve(httpLn)

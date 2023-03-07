@@ -23,7 +23,7 @@ type OutboundPacket struct {
 
 type HandleConn func(
 	parentCtx context.Context,
-	conn *net.TCPConn,
+	conn net.Conn,
 	hostPort string,
 )
 
@@ -45,7 +45,7 @@ func (Def) HandleConn(
 
 	return func(
 		parentCtx context.Context,
-		conn *net.TCPConn,
+		conn net.Conn,
 		hostPort string,
 	) {
 
@@ -80,12 +80,24 @@ func (Def) HandleConn(
 		var once1, once2 sync.Once
 		closeConnRead := func() {
 			once1.Do(func() {
-				conn.CloseRead()
+				if c, ok := conn.(interface {
+					CloseRead() error
+				}); ok {
+					c.CloseRead()
+				} else {
+					conn.Close()
+				}
 			})
 		}
 		closeConnWrite := func() {
 			once2.Do(func() {
-				conn.CloseWrite()
+				if c, ok := conn.(interface {
+					CloseWrite() error
+				}); ok {
+					c.CloseWrite()
+				} else {
+					conn.Close()
+				}
 				for _, ctx := range ctxs {
 					ctx.Cancel()
 				}
@@ -202,11 +214,11 @@ func (Def) HandleConn(
 				}
 
 				// dial
-				var upstream *net.TCPConn
+				var upstream net.Conn
 				if !noDial {
 					c, err := dialer.DialContext(ctxs[i].Context, "tcp", hostPort)
 					if err == nil {
-						upstream = c.(*net.TCPConn)
+						upstream = c
 					}
 				}
 
@@ -215,7 +227,13 @@ func (Def) HandleConn(
 				closeUpstreamRead := func() {
 					once1.Do(func() {
 						if upstream != nil {
-							upstream.CloseRead()
+							if c, ok := upstream.(interface {
+								CloseRead() error
+							}); ok {
+								c.CloseRead()
+							} else {
+								upstream.Close()
+							}
 							upstream.SetWriteDeadline(time.Now().Add(time.Second * 30))
 						}
 					})
@@ -223,7 +241,13 @@ func (Def) HandleConn(
 				closeUpstreamWrite := func() {
 					once2.Do(func() {
 						if upstream != nil {
-							upstream.CloseWrite()
+							if c, ok := upstream.(interface {
+								CloseWrite() error
+							}); ok {
+								c.CloseWrite()
+							} else {
+								upstream.Close()
+							}
 							deadline := time.Now().Add(time.Second * 30)
 							upstream.SetReadDeadline(deadline)
 						}
