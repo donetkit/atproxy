@@ -7,11 +7,6 @@ import (
 )
 
 func (Def) TailscaleDial() TailscaleDial {
-	authKey := os.Getenv("TS_AUTHKEY")
-	if authKey == "" {
-		return nil
-	}
-
 	hostname, err := os.Hostname()
 	ce(err)
 	return (&tsnet.Server{
@@ -19,6 +14,5 @@ func (Def) TailscaleDial() TailscaleDial {
 		Logf: func(format string, args ...any) {
 			// do nothing
 		},
-		Ephemeral: true,
 	}).Dial
 }
