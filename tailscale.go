@@ -1,24 +1,8 @@
 package atproxy
 
 import (
-	"os"
-
-	"tailscale.com/tsnet"
+	"context"
+	"net"
 )
 
-func (Def) TailscaleServer() *tsnet.Server {
-	authKey := os.Getenv("TS_AUTHKEY")
-	if authKey == "" {
-		return nil
-	}
-
-	hostname, err := os.Hostname()
-	ce(err)
-	return &tsnet.Server{
-		Hostname: hostname,
-		Logf: func(format string, args ...any) {
-			// do nothing
-		},
-		Ephemeral: true,
-	}
-}
+type TailscaleDial func(ctx context.Context, network, addr string) (net.Conn, error)
