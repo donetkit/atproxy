@@ -15,6 +15,7 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/reusee/atproxy"
+	"github.com/reusee/dscope"
 	"github.com/reusee/starlarkutil"
 	"go.starlark.net/starlark"
 )
@@ -132,6 +133,8 @@ func main() {
 		ce(err)
 	}
 
+	newServerScope := dscope.Get[atproxy.NewServerScope](atproxy.GlobalScope)
+
 	for _, spec := range serverSpecs {
 		spec := spec
 		go func() {
@@ -141,7 +144,7 @@ func main() {
 			httpLn, err := net.Listen("tcp", spec.HTTP)
 			ce(err)
 
-			atproxy.NewServerScope().Fork(defs...).Fork(
+			newServerScope().Fork(defs...).Fork(
 
 				&spec.NoDirect,
 				&noDirectPatterns,
