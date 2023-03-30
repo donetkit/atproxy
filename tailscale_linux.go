@@ -25,6 +25,10 @@ func (Global) TsServer() *tsnet.Server {
 	}
 	ce(tsServer.Start())
 
+	for _, domain := range tsServer.CertDomains() {
+		pt("tailscale cert domain: %s\n", domain)
+	}
+
 	return tsServer
 }
 
