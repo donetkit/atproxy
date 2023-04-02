@@ -18,7 +18,7 @@ func (Global) TsServer() *tsnet.Server {
 
 	tsServer := &tsnet.Server{
 		Dir:      dir,
-		Hostname: hostname,
+		Hostname: "tsnet-" + hostname,
 		Logf: func(format string, args ...any) {
 			// do nothing
 		},
