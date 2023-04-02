@@ -3,13 +3,13 @@ module github.com/reusee/atproxy
 go 1.18
 
 require (
-	github.com/reusee/dscope v0.0.0-20230307161459-37cbe8c9d3cc
+	github.com/reusee/dscope v0.0.0-20230331163711-7009d1597dad
 	github.com/reusee/e5 v0.0.0-20230128094953-f2ff5c9c135a
 	github.com/reusee/pr2 v0.0.0-20230306155640-52a016ca8efe
 	github.com/reusee/starlarkutil v0.0.0-20230221075612-ea3884e11400
 	go.starlark.net v0.0.0-20230302034142-4b1e35fe2254
 	golang.org/x/sys v0.6.0
-	tailscale.com v1.38.2
+	tailscale.com v1.38.3
 )
 
 require (
