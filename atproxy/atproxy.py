@@ -11,6 +11,7 @@ server_spec(
     Upstreams = {
         "ts:HK1": "100.118.120.94:10000",
         "ts:US1": "100.73.249.57:10000",
+        "ts:JP1": "100.64.172.91:10000",
     },
 )
 server_spec(
@@ -26,6 +27,14 @@ server_spec(
     HTTP = "0.0.0.0:12086",
     Upstreams = {
         "ts:US1": "100.73.249.57:10000",
+    },
+    NoDirect = True,
+)
+server_spec(
+    Socks = "0.0.0.0:13000",
+    HTTP = "0.0.0.0:13086",
+    Upstreams = {
+        "ts:JP1": "100.64.172.91:10000",
     },
     NoDirect = True,
 )
