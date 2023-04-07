@@ -9,7 +9,7 @@ require (
 	github.com/reusee/starlarkutil v0.0.0-20230221075612-ea3884e11400
 	go.starlark.net v0.0.0-20230302034142-4b1e35fe2254
 	golang.org/x/sys v0.6.0
-	tailscale.com v1.38.3
+	tailscale.com v1.38.4
 )
 
 require (
