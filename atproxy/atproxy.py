@@ -43,6 +43,7 @@ no_direct("github")
 no_direct("google")
 no_direct("gstatic")
 no_direct("mypikpak")
+no_direct("bing")
 
 no_upstream("163.com")
 no_upstream("jd.com")
