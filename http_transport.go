@@ -2,7 +2,7 @@ package atproxy
 
 import "net/http"
 
-func (Def) HTTPTransports(
+func (Server) HTTPTransports(
 	dialers Dialers,
 ) (transports []*http.Transport) {
 	for _, dial := range dialers {

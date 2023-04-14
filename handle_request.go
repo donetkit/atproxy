@@ -13,7 +13,7 @@ type HandleRequest func(
 	w http.ResponseWriter,
 )
 
-func (Def) HandleRequest(
+func (Server) HandleRequest(
 	transports []*http.Transport,
 	bytesPool BytesPool,
 ) HandleRequest {

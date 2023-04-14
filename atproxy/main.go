@@ -133,7 +133,8 @@ func main() {
 		ce(err)
 	}
 
-	newServerScope := dscope.Get[atproxy.NewServerScope](atproxy.GlobalScope)
+	global := atproxy.NewGlobal()
+	newServer := dscope.Get[atproxy.NewServer](global.Scope)
 
 	for _, spec := range serverSpecs {
 		spec := spec
@@ -144,8 +145,8 @@ func main() {
 			httpLn, err := net.Listen("tcp", spec.HTTP)
 			ce(err)
 
-			newServerScope().Fork(defs...).Fork(
-
+			server := newServer(defs...)
+			server.Scope = server.Scope.Fork(
 				&spec.NoDirect,
 				&noDirectPatterns,
 				&noUpstreamPattern,
@@ -169,16 +170,15 @@ func main() {
 				},
 
 				//
-			).Call(func(
-				serve atproxy.Serve,
-			) {
-				ctx := context.Background()
-				ce(serve(
-					ctx,
-					socksLn.(*net.TCPListener),
-					httpLn.(*net.TCPListener),
-				))
-			})
+			)
+
+			serve := dscope.Get[atproxy.Serve](server.Scope)
+			ctx := context.Background()
+			ce(serve(
+				ctx,
+				socksLn.(*net.TCPListener),
+				httpLn.(*net.TCPListener),
+			))
 
 		}()
 

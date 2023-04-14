@@ -6,17 +6,33 @@ import (
 	"net/http"
 
 	"github.com/reusee/atproxy/internal"
+	"github.com/reusee/dscope"
 )
+
+type Server struct {
+	Scope Scope
+}
+
+type NewServer func(defs ...any) *Server
+
+func (g *Global) NewServer() NewServer {
+	return func(defs ...any) *Server {
+		server := new(Server)
+		defs = append(defs, dscope.Methods(server)...)
+		server.Scope = g.Scope.Fork(defs...)
+		return server
+	}
+}
 
 type MaxClients int
 
-func (Def) MaxClients() MaxClients {
+func (Server) MaxClients() MaxClients {
 	return 0
 }
 
 type ClientSemaphore chan struct{}
 
-func (Def) ClientSemaphore(
+func (Server) ClientSemaphore(
 	max MaxClients,
 ) ClientSemaphore {
 	if max == 0 {
@@ -33,7 +49,7 @@ type Serve func(
 	err error,
 )
 
-func (Def) Serve(
+func (Server) Serve(
 	clientSem ClientSemaphore,
 	handleRequest HandleRequest,
 	handleConn HandleConn,

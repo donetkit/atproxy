@@ -7,7 +7,7 @@ import (
 
 type GetPenalty func(dialer *Dialer, hostPort string) time.Duration
 
-func (Def) Penalty() (
+func (Server) Penalty() (
 	onSelected OnSelected,
 	onNotSelected OnNotSelected,
 	get GetPenalty,

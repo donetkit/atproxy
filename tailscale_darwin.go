@@ -1,5 +1,5 @@
 package atproxy
 
-func (Def) TailscaleDial() TailscaleDial {
+func (Server) TailscaleDial() TailscaleDial {
 	return nil
 }

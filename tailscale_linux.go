@@ -32,7 +32,7 @@ func (Global) TsServer() *tsnet.Server {
 	return tsServer
 }
 
-func (Def) TailscaleDial(
+func (Global) TailscaleDial(
 	tsServer *tsnet.Server,
 ) TailscaleDial {
 	return tsServer.Dial
