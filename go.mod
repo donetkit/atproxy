@@ -1,6 +1,6 @@
 module github.com/reusee/atproxy
 
-go 1.18
+go 1.20
 
 require (
 	github.com/reusee/dscope v0.0.0-20230331163711-7009d1597dad
@@ -76,7 +76,7 @@ require (
 	golang.org/x/tools v0.8.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	golang.zx2c4.com/wireguard/windows v0.5.3 // indirect
-	gvisor.dev/gvisor v0.0.0-20230414165752-927e99ebaacb // indirect
+	gvisor.dev/gvisor v0.0.0-20221203005347-703fd9b7fbc0 // indirect
 	inet.af/peercred v0.0.0-20210906144145-0893ea02156a // indirect
 	nhooyr.io/websocket v1.8.7 // indirect
 )
