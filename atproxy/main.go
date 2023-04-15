@@ -145,8 +145,7 @@ func main() {
 			httpLn, err := net.Listen("tcp", spec.HTTP)
 			ce(err)
 
-			server := newServer(defs...)
-			server.Scope = server.Scope.Fork(
+			server := newServer(defs, []any{
 				&spec.NoDirect,
 				&noDirectPatterns,
 				&noUpstreamPattern,
@@ -170,7 +169,7 @@ func main() {
 				},
 
 				//
-			)
+			})
 
 			serve := dscope.Get[atproxy.Serve](server.Scope)
 			ctx := context.Background()

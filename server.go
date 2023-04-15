@@ -13,13 +13,15 @@ type Server struct {
 	Scope Scope
 }
 
-type NewServer func(defs ...any) *Server
+type NewServer func(defSets ...[]any) *Server
 
 func (g *Global) NewServer() NewServer {
-	return func(defs ...any) *Server {
+	return func(defSets ...[]any) *Server {
 		server := new(Server)
-		defs = append(defs, dscope.Methods(server)...)
-		server.Scope = g.Scope.Fork(defs...)
+		server.Scope = g.Scope.Fork(dscope.Methods(server)...)
+		for _, defs := range defSets {
+			server.Scope = server.Scope.Fork(defs...)
+		}
 		return server
 	}
 }
